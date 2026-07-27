@@ -28,9 +28,25 @@ import detector as D
 DPM, D0, DS, LC = 411, 421, 431, 4122
 
 
+PNG_DIR = None   # if set, each page is also written as a standalone PNG here
+
+
 def load(npz):
     f = np.load(npz)
     return {k: f[k] for k in f.files}
+
+
+def _emit(fig, pdf, name, tight=True):
+    """Save a figure to the PDF and, if PNG_DIR is set, to <PNG_DIR>/<name>.png."""
+    if tight:
+        fig.tight_layout()
+    pdf.savefig(fig)
+    if PNG_DIR:
+        import os
+        os.makedirs(PNG_DIR, exist_ok=True)
+        fig.savefig(os.path.join(PNG_DIR, f"{name}.png"), dpi=130,
+                    bbox_inches="tight")
+    plt.close(fig)
 
 
 def summarise_metrics(d, params, rng=None):
@@ -101,7 +117,7 @@ def page_muon_spectrum(pdf, d):
     secax.set_xlabel("muon ionisation range in plastic scintillator [m]  "
                      "(FASERcal is a few m -> the muon exits)", fontsize=10)
     ax.grid(alpha=0.3)
-    fig.tight_layout(); pdf.savefig(fig); plt.close(fig)
+    _emit(fig, pdf, "01_muon_spectrum")
 
 
 def page_flight_length(pdf, d):
@@ -130,7 +146,7 @@ def page_flight_length(pdf, d):
                  f"({med_all/1e4:.2f} cm) -> emulsion resolves it, FASERcal essentially cannot",
                  fontsize=11)
     ax.legend(fontsize=9); ax.grid(alpha=0.3, which="both")
-    fig.tight_layout(); pdf.savefig(fig); plt.close(fig)
+    _emit(fig, pdf, "02_flight_length")
 
 
 def page_cutflow_table(pdf, d, params, rng):
@@ -167,7 +183,7 @@ def page_cutflow_table(pdf, d, params, rng):
              "Key number: the sign-able fraction per charm hadron sets the tagging efficiency; "
              "the asymmetry dilution (1-2$\\eta$) sets how much of the intrinsic-charm c/c~ "
              "signal survives.", ha="center", fontsize=9, style="italic", wrap=True)
-    pdf.savefig(fig); plt.close(fig)
+    _emit(fig, pdf, "03_cutflow", tight=False)
 
 
 def page_phalf_scan(pdf, d, base_params, rng):
@@ -200,14 +216,20 @@ def page_phalf_scan(pdf, d, base_params, rng):
                   fontsize=11)
     fig.suptitle("What the spectrometer must deliver: purity climbs steeply once "
                  "$p_{1/2}$ exceeds the muon momenta", fontsize=12)
-    fig.tight_layout(); pdf.savefig(fig); plt.close(fig)
+    _emit(fig, pdf, "04_phalf_scan")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--npz", default=config.get("charm_npz"))
     ap.add_argument("--output", default=config.get("report_pdf"))
+    ap.add_argument("--png-dir", default=None,
+                    help="If set, also write each page as a PNG here "
+                         "(e.g. docs/figures for the in-repo report)")
     args = ap.parse_args()
+
+    global PNG_DIR
+    PNG_DIR = args.png_dir
 
     d = load(args.npz)
     params = dict(D.DEFAULTS)

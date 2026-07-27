@@ -50,9 +50,28 @@ PROD      = config.get("production_dir")
 SAMPLES   = ["mum_proton", "mum_neutron", "mup_proton", "mup_neutron"]
 
 
-def signal_group(prod_name):
-    """(label, LHE path) for a 'production_v1'-layout run (seed1 subdir)."""
-    return [(s, f"{PROD}/{prod_name}/{s}/pythia8_seed1/pwgevents.lhe") for s in SAMPLES]
+def signal_group(prod_name, seed=1):
+    """(label, LHE path) for a 'production_v1'-layout run at a given Pythia seed.
+
+    The 25 seedN subdirectories each hold a DISTINCT 20k-event POWHEG sample
+    (verified by md5), so showering several seeds is a real statistics increase,
+    not a re-hadronisation of the same events.
+    """
+    return [(s, f"{PROD}/{prod_name}/{s}/pythia8_seed{seed}/pwgevents.lhe")
+            for s in SAMPLES]
+
+
+def parse_seeds(spec):
+    """Parse a seed spec like '1', '1-10', or '1,3,5' into a sorted int list."""
+    out = set()
+    for part in str(spec).split(","):
+        part = part.strip()
+        if "-" in part:
+            a, b = part.split("-")
+            out.update(range(int(a), int(b) + 1))
+        elif part:
+            out.add(int(part))
+    return sorted(out)
 
 
 def tung_factor(name):
@@ -225,12 +244,23 @@ def main():
                     help="Max events to shower per sample (default 20000)")
     ap.add_argument("--prod", default="production_v1",
                     help="production_v1-layout run to shower (default: production_v1)")
+    ap.add_argument("--seeds", default="1",
+                    help="Seed spec: '1', '1-10', or '1,3,5'. Each seed is a "
+                         "distinct 20k-event sample (default: 1)")
     ap.add_argument("--npz", default=config.get("charm_npz"),
                     help="Output cache path [default: json settings charm_npz]")
     args = ap.parse_args()
 
-    print(f"Showering {args.prod} ...")
-    arr = load_group(signal_group(args.prod), args.nevents)
+    seeds = parse_seeds(args.seeds)
+    print(f"Showering {args.prod}, seeds {seeds} "
+          f"({len(seeds)} x {args.nevents} x {len(SAMPLES)} events max) ...")
+    parts = []
+    for sd in seeds:
+        print(f"--- seed {sd} ---")
+        parts.append(load_group(signal_group(args.prod, sd), args.nevents))
+    keys = parts[0].keys()
+    arr = {k: np.concatenate([p[k] for p in parts]) if parts else np.array([])
+           for k in keys}
     n_mu = int(arr["has_mu"].sum()) if len(arr["has_mu"]) else 0
     n_ch = len(arr["sign"])
     print(f"\nTotal: {n_ch} charm hadrons, {n_mu} with a decay muon "
