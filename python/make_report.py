@@ -33,8 +33,20 @@ def load(npz):
     return {k: f[k] for k in f.files}
 
 
-def summarise_metrics(d, params, rng):
-    """Weighted tagging metrics under a given detector-parameter dict."""
+def summarise_metrics(d, params, rng=None):
+    """
+    Weighted tagging metrics under a given detector-parameter dict.
+
+    The charge-confusion effect is taken as its ANALYTIC EXPECTATION per muon
+    rather than a single random draw: with only ~few-hundred accepted muons a
+    single MC realisation adds spurious noise (it can even make |A_meas| exceed
+    |A_true|, which the (1-2eta) dilution forbids).  Each muon of true sign s
+    and confusion eta_i contributes weight w_i*(1-eta_i) at sign s and
+    w_i*eta_i at sign -s, so:
+        purity  = <1-eta>_w        (weighted mean correct-tag prob)
+        A_meas  = sum w_i (1-2 eta_i) s_i / sum w_i   (per-muon-diluted A)
+    ``rng`` is accepted for interface compatibility but unused.
+    """
     w = d["w"]
     has_mu = d["has_mu"] > 0.5
     n_charm = w.sum()
@@ -43,20 +55,18 @@ def summarise_metrics(d, params, rng):
     acc = has_mu & D.accepts(d["mu_p"], d["mu_theta"], **params)
     n_acc = w[acc].sum()
 
-    true_q = d["sign"][acc].astype(int)
-    reco_q = D.tag_charge(true_q, d["mu_p"][acc], rng, **params)
+    true_q = d["sign"][acc]
     wa = w[acc]
-    correct = wa[reco_q == true_q].sum()
-    purity = correct / n_acc if n_acc > 0 else 0.0
+    eta = D.charge_confusion(d["mu_p"][acc], params["eta0"],
+                             params["p_half_gev"], params["p_width_gev"])
+    purity = (wa * (1.0 - eta)).sum() / n_acc if n_acc > 0 else 0.0
     eta_eff = 1.0 - purity
 
-    # true and measured charm asymmetry A = (Nc - Nc~)/(Nc + Nc~)
-    nc_t = wa[true_q > 0].sum();  nca_t = wa[true_q < 0].sum()
-    A_true = (nc_t - nca_t) / (nc_t + nca_t) if (nc_t + nca_t) > 0 else 0.0
-    nc_r = wa[reco_q > 0].sum();  nca_r = wa[reco_q < 0].sum()
-    A_meas = (nc_r - nca_r) / (nc_r + nca_r) if (nc_r + nca_r) > 0 else 0.0
+    # true and per-muon-diluted measured charm asymmetry A=(Nc-Nc~)/(Nc+Nc~)
+    A_true = (wa * true_q).sum() / n_acc if n_acc > 0 else 0.0
+    A_meas = (wa * (1.0 - 2.0 * eta) * true_q).sum() / n_acc if n_acc > 0 else 0.0
 
-    return dict(n_charm=n_charm, n_mu=n_mu, n_acc=n_acc,
+    return dict(n_charm=n_charm, n_mu=n_mu, n_acc=n_acc, n_acc_raw=int(acc.sum()),
                 br_mu=n_mu / n_charm if n_charm else 0.0,
                 acc_frac=n_acc / n_mu if n_mu else 0.0,
                 tag_eff=n_acc / n_charm if n_charm else 0.0,
@@ -134,9 +144,11 @@ def page_cutflow_table(pdf, d, params, rng):
                                                   f"{100*m['acc_frac']:.1f}% of muons"),
         ("Overall sign-able fraction / charm",   "",                  f"{100*m['tag_eff']:.2f}%"),
         ("", "", ""),
+        ("Accepted muons (raw MC count)",        f"{m['n_acc_raw']}",  "stat. limit"),
         ("Charge-tag purity (accepted muons)",   "",                  f"{100*m['purity']:.1f}%"),
         ("Mean charge confusion $\\eta$",        "",                  f"{100*m['eta_eff']:.1f}%"),
-        ("True charm asymmetry $A$",             "",                  f"{m['A_true']:+.3f}"),
+        ("True charm asymmetry $A$",             "",
+                                        f"{m['A_true']:+.3f} $\\pm$ {1/np.sqrt(max(m['n_acc_raw'],1)):.3f}"),
         ("Measured asymmetry $A_{meas}=(1-2\\eta)A$", "",             f"{m['A_meas']:+.3f}"),
     ]
     tab = ax.table(cellText=[[r[0], r[1], r[2]] for r in rows],
