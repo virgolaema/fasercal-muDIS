@@ -21,6 +21,8 @@ so the decay-muon charge *is* the charm sign.  But signing that muon needs a
 **downstream magnetised spectrometer** (FASER2-like) — FASERcal only sees it
 pass through MIP-like.  This toy quantifies how well that works.
 
+**➡ Full write-up with results and figures: [`docs/REPORT.md`](docs/REPORT.md).**
+
 ## What the toy computes
 
 - **Decay-muon lab momentum** (and hence its ionisation range) — it is "soft"
