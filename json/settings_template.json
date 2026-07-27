@@ -1,0 +1,19 @@
+{
+  "_README": [
+    "Path configuration template for the muonDIS FASERcal charm-tagging toy.",
+    "COPY this file to json/ev.json and edit the paths for your setup:",
+    "    cp json/settings_template.json json/ev.json",
+    "python/config.py reads json/ev.json first, falling back to this template.",
+    "ev.json is git-ignored (personal, machine-specific).",
+    "Override the whole file with the FASERCAL_SETTINGS environment variable.",
+    "Keys beginning with '_' are comments and are ignored by the loader."
+  ],
+  "_help": {
+    "production_dir": "Holds the POWHEG LHE samples reused from the FASERnu study: production_v1 (fitted charm), production_pc (perturbative charm).",
+    "charm_npz": "Per-charm-hadron cache written by fasercal_toy.py (charm sign, decay length, semileptonic-muon kinematics).",
+    "report_pdf": "Output PDF of the FASERcal charm/anticharm tagging toy."
+  },
+  "production_dir": "/eos/home-e/USER/faser/production",
+  "charm_npz": "/eos/home-e/USER/faser/fasercal_charm_muons.npz",
+  "report_pdf": "/eos/home-e/USER/faser/reports/fasercal_charm_tagging.pdf"
+}

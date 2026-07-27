@@ -1,0 +1,9 @@
+# personal machine-specific paths
+json/ev.json
+# python
+__pycache__/
+*.pyc
+# logs and generated outputs (bulk data + PDFs live on EOS)
+logs/*.log
+output/*.pdf
+*.npz
