@@ -10,6 +10,11 @@ fiducial mass, **≈4.4×10⁵ muon-DIS interactions → ≈650 charge-signed, v
 charm muons**, i.e. **0.15 %** of DIS — giving a statistical reach on the charm
 asymmetry of **σ(A_c) ≈ ±0.04**.
 
+**With a tungsten absorber** (§8.2) the reach improves substantially and the
+multiple-scattering penalty is far smaller than expected: **1 mm W/layer →
+σ(A_c) = 0.024 (×1.6), 5 mm W/layer → 0.015 (×2.6)**. The absorber choice is
+limited by *calorimetric* performance, not by charm statistics.
+
 ---
 
 ## 1. Detector context — what is and is not known
@@ -270,6 +275,62 @@ intrinsic charm is a *large-x* effect, and integrating over all x washes it out.
 Extracting it requires the differential-in-x analysis of §11, not the inclusive
 yield. What this chain establishes is the *sample size* available to do that.
 
+### 8.2 Tungsten absorber scenarios
+
+Two additional configurations were studied: **1 mm** and **5 mm** of tungsten per
+layer, interleaved with the scintillator. The comparison is made at a **fixed 1 m
+detector envelope** (the trench space constraint, TP §3.1), so tungsten
+*displaces* scintillator rather than lengthening the detector — the physically
+constrained comparison. Geometry model in
+[`python/geometry.py`](../python/geometry.py).
+
+**Material budget** (1 m² × 1 m envelope, 1 cm scintillator per layer):
+
+| scenario | layers | M_scint | M_W | **M_total** | ⟨X₀⟩ | ⟨dE⟩ | λ_int |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| baseline (no W) | 100 | 1.02 t | — | **1.02 t** | 1.2 | 98 MeV | 1.2 |
+| 1 mm W | 90.9 | 0.93 t | 1.75 t | **2.68 t** | 14.1 | 190 MeV | 2.1 |
+| 5 mm W | 66.7 | 0.68 t | 6.43 t | **7.11 t** | 48.4 | 434 MeV | 4.2 |
+
+Tungsten's density means even 1 mm plates *dominate* the nucleon count: at 1 mm
+the detector is already 65 % tungsten by mass, at 5 mm it is 90 %.
+
+**Chain results** (Run 4, 680 fb⁻¹, acceptance cone calibrated on the baseline):
+
+| scenario | N_DIS | charm | semilep µ | accepted | **tagged** | acceptance | θ_MS | **σ(A_c)** | gain |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | 452 660 | 12 790 | 2 246 | 727 | **654** | 39.5 % | 1.9 mrad | **0.039** | ×1.00 |
+| 1 mm W | 1 172 393 | 33 646 | 5 866 | 1 888 | **1 699** | 39.3 % | 6.9 mrad | **0.024** | **×1.61** |
+| 5 mm W | 3 091 679 | 89 260 | 15 520 | 4 965 | **4 469** | 39.1 % | 13.4 mrad | **0.015** | **×2.61** |
+
+**The mass gain wins outright.** Multiple scattering grows steeply — θ_MS at the
+median decay-muon momentum goes 1.9 → 6.9 → 13.4 mrad, exceeding the 8.7 mrad
+aperture at 5 mm — yet acceptance falls only 39.5 % → 39.1 %.
+
+The reason is worth stating because it is counter-intuitive: **the decay-muon
+angular distribution is intrinsically far broader than the aperture** (median
+33 mrad vs an 8.7 mrad cone). Acceptance is therefore "does the muon happen to
+point into a small cone", which samples the angular *density near zero*.
+Scattering diffuses that density but does not deplete it — it moves nearly as
+many muons into the cone as out. Explicit migration at 5 mm W: **5.3 % scattered
+out, 2.4 % scattered in**, net −3 % absolute (−7.5 % relative).
+
+**Cost that this toy does *not* penalise.** Scattering destroys the *measurement*
+of the decay-muon angle even where it preserves the *count*. That is harmless for
+charge tagging and counting (what this note computes) but would matter for any
+analysis using the decay-muon direction. By contrast the **scattered DIS muon is
+barely affected** — being ~470 GeV, its θ_MS is 0.045/0.169/0.327 mrad, i.e. only
+1.1 / 3.9 / 7.6 % of its 4.3 mrad scattering angle. **So tungsten does not
+compromise the DIS kinematics**, which is the measurement Table 1 actually asks for.
+
+**Hadronic containment is the real limit.** The interaction-length budget is
+1.2 / 2.1 / 4.2 λ_int, all below the ~6 λ typically needed to contain a hadronic
+shower. The absorber-thickness scan shows the tagged yield rising
+**monotonically** out to 3 cm/layer with no statistical optimum — meaning the
+choice is *not* set by charm statistics but by calorimetric performance
+(containment, sampling fluctuations, E_had resolution), which this toy does not
+model. That is the right place to make the decision.
+
 ---
 
 ## 9. Key findings
@@ -290,17 +351,34 @@ small large-x effect.
 an order of magnitude wider than the scattered muon (median 33 mrad vs 4.3), with
 a tail to 285 mrad. 83 % already pass the punch-through momentum cut, so
 essentially all of the loss is geometric.
-**The assumed 40 % acceptance is equivalent to a θ < 17 mrad cone** — a directly
-checkable statement against the real §6.5 aperture. If the true aperture is
-wider, the yield rises steeply: a 50 mrad cone would accept 71 %, nearly doubling
-the tagged sample.
+
+**The assumed 40 % acceptance is equivalent to a θ < 8.7 mrad cone**, a directly
+checkable statement against the real §6.5 aperture.
+
+> **Correction.** An earlier version of this note quoted 17 mrad. That was the
+> *unweighted* 40th percentile of the MC events. The event weights correlate
+> with angle (harder, more forward interactions carry more weight), so the
+> yield-weighted value — the correct one for an event count — is **8.7 mrad**,
+> a factor ~2 *tighter*, i.e. a more demanding aperture requirement. All
+> acceptance calibration in the code now uses the weighted quantile
+> (`calibrate_cone()`).
 
 **4. Charge ID is not the bottleneck.** With a median decay-muon momentum of
 11.5 GeV, charge confusion is ~3 % for any plausible spectrometer, and the
 asymmetry dilution (1−2η) ≈ 0.95. The magnet needs modest performance at
 few-tens of GeV, not TeV-scale reach.
 
-**5. σ(A_c) ≈ ±0.04 at nominal assumptions.** Whether that is sufficient depends
+**5. Tungsten pays for itself, and the scattering penalty is much smaller than
+naively expected.** Adding absorber multiplies the target mass (×2.6 at 1 mm,
+×7.0 at 5 mm) and the tagged yield tracks it almost exactly, while acceptance
+falls by only a few percent relative. The naive worry — "MCS exceeds the
+aperture, so acceptance collapses" — is wrong, because the decay-muon angular
+distribution is intrinsically much wider than the aperture and scattering
+diffuses rather than depletes it. Crucially, the *scattered DIS muon* (~470 GeV)
+is essentially unaffected (θ_MS ≤ 7.6 % of θ_µ even at 5 mm), so the DIS
+kinematics that Table 1 actually asks for survive.
+
+**6. σ(A_c) ≈ ±0.04 at nominal assumptions.** Whether that is sufficient depends
 on the predicted intrinsic-charm asymmetry, which this note does not yet compute
 differentially in x — that is the follow-up (§11).
 
@@ -349,9 +427,12 @@ python3 python/make_chain_report.py --png-dir docs/figures
 | file | role |
 |---|---|
 | [`python/shower_dis.py`](../python/shower_dis.py) | Pythia8 → per-event cache (DIS, hadronic, charm, dimuon) |
-| [`python/fasercal_chain.py`](../python/fasercal_chain.py) | normalisation, target composition, response model, the chain |
+| [`python/fasercal_chain.py`](../python/fasercal_chain.py) | normalisation, target composition, response model, the chain, tungsten scenarios |
+| [`python/geometry.py`](../python/geometry.py) | sampling geometry, material budget, multiple scattering |
 | [`python/make_chain_report.py`](../python/make_chain_report.py) | cache → PDF report |
 | [`python/config.py`](../python/config.py) | path resolution (`json/ev.json`) |
 
-To rescale to the real 3DCAL: edit `M_FID_T` in `fasercal_chain.py`.
+To rescale to the real 3DCAL: edit `M_FID_T` in `fasercal_chain.py`; for the
+tungsten scenarios edit `AREA_CM2`/`LENGTH_CM`/`D_SCINT_CM` in `geometry.py`.
+Absorber thicknesses studied live in `geometry.SCENARIOS`.
 To use 780 fb⁻¹: set `LUMI_RUN4 = LUMI_RUN4_ALT` (×1.15 on all yields).

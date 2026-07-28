@@ -216,6 +216,112 @@ def page_ic(pdf, d, dpc):
     _emit(fig, pdf, "14_ic_comparison")
 
 
+def page_tungsten_scenarios(pdf, d, cone):
+    """Baseline vs 1 mm vs 5 mm tungsten absorber, through the whole chain."""
+    import geometry as G
+    ms = {nm: F.chain_scenario(d, t, cone=cone) for nm, t in G.SCENARIOS.items()}
+    names = list(G.SCENARIOS)
+    base = ms[names[0]]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.6))
+    stages = ["n_dis", "n_charm", "n_semi", "n_punch", "n_acc", "n_tag"]
+    slab = ["DIS", "charm", r"semilep $\mu$", "punch", "accept", "tagged"]
+    x = np.arange(len(stages)); wd = 0.26
+    cols = ["#4c72b0", "#dd8452", "#c44e52"]
+    for i, nm in enumerate(names):
+        ax1.bar(x + (i - 1) * wd, [ms[nm][s] for s in stages], wd,
+                label=nm.replace("_", " "), color=cols[i], edgecolor="black", lw=0.5)
+    ax1.set_yscale("log"); ax1.set_xticks(x); ax1.set_xticklabels(slab, fontsize=10)
+    ax1.set_ylabel("Expected events (Run 4)", fontsize=11)
+    ax1.legend(fontsize=9); ax1.grid(axis="y", alpha=0.3, which="both")
+    ax1.set_title("Tungsten multiplies the whole chain", fontsize=11.5)
+
+    mass = [ms[nm]["geo"]["m_tot"] for nm in names]
+    tag = [ms[nm]["n_tag"] for nm in names]
+    sig = [ms[nm]["sigma_A"] for nm in names]
+    ax2.plot(mass, tag, "o-", color="#1f3b57", lw=2, ms=9)
+    for nm, mm, tt in zip(names, mass, tag):
+        ax2.annotate(nm.replace("_", " "), (mm, tt), textcoords="offset points",
+                     xytext=(8, -12), fontsize=9)
+    ax2.set_xlabel("total fiducial mass [t]", fontsize=11)
+    ax2.set_ylabel("tagged charm muons", fontsize=11)
+    ax2.grid(alpha=0.3)
+    axb = ax2.twinx()
+    axb.plot(mass, sig, "s--", color="#c44e52", lw=1.8, ms=7)
+    axb.set_ylabel(r"$\sigma(A_c)$", color="#c44e52", fontsize=11)
+    axb.tick_params(axis="y", colors="#c44e52")
+    ax2.set_title(r"Yield tracks mass; $\sigma(A_c)$ improves as $1/\sqrt{N}$",
+                  fontsize=11.5)
+    fig.suptitle("Tungsten absorber scenarios — fixed 1 m envelope, "
+                 "W displaces scintillator", fontsize=12.5)
+    _emit(fig, pdf, "16_tungsten_scenarios")
+
+    # ---- companion table page ----
+    fig, ax = plt.subplots(figsize=(12, 6.2)); ax.axis("off")
+    rows = []
+    for nm in names:
+        m = ms[nm]; g = m["geo"]
+        rows.append([nm.replace("_", " "),
+                     f"{g['m_sc']:.2f} / {g['m_w']:.2f}",
+                     f"{g['m_tot']:.2f}",
+                     f"{g['x0_mean']:.1f}",
+                     f"{m['theta_ms_med_mrad']:.1f}",
+                     f"{100*m['f_acc']:.1f}%",
+                     f"{m['n_tag']:,.0f}",
+                     f"{m['sigma_A']:.3f}",
+                     f"x{base['sigma_A']/m['sigma_A']:.2f}"])
+    tab = ax.table(cellText=rows,
+                   colLabels=["scenario", "M scint/W [t]", "M tot [t]",
+                              r"$\langle X_0\rangle$", r"$\theta_{MS}$ [mrad]",
+                              "accept.", "tagged", r"$\sigma(A_c)$", "gain"],
+                   loc="center", cellLoc="center")
+    tab.auto_set_font_size(False); tab.set_fontsize(10); tab.scale(1, 2.0)
+    for j in range(9):
+        tab[0, j].set_facecolor("#1f3b57")
+        tab[0, j].set_text_props(color="white", fontweight="bold")
+    ax.set_title("Tungsten scenarios — material budget and physics reach", fontsize=13, pad=18)
+    fig.text(0.5, 0.11,
+             "Multiple scattering grows steeply ($\\theta_{MS}$ 1.9 → 13.4 mrad) but costs only a few % of "
+             "acceptance:\nthe decay-muon angular spread is intrinsically much wider than the aperture, so "
+             "scattering moves nearly as many muons in as out.\nThe mass gain therefore wins outright.",
+             ha="center", fontsize=9, style="italic")
+    _emit(fig, pdf, "17_tungsten_table", tight=False)
+
+
+def page_tungsten_scan(pdf, d, cone):
+    """Is there an optimum absorber thickness?"""
+    import geometry as G
+    tw = np.concatenate([[0.0], np.logspace(np.log10(0.02), np.log10(3.0), 26)])
+    res = [F.chain_scenario(d, float(t), cone=cone) for t in tw]
+    tag = np.array([r["n_tag"] for r in res])
+    facc = np.array([100 * r["f_acc"] for r in res])
+    mtot = np.array([r["geo"]["m_tot"] for r in res])
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.4))
+    ax1.plot(tw * 10, tag, "-", color="#1f3b57", lw=2.4)
+    for nm, t in G.SCENARIOS.items():
+        m = F.chain_scenario(d, t, cone=cone)
+        ax1.plot(t * 10, m["n_tag"], "o", ms=10, label=nm.replace("_", " "))
+    ax1.set_xlabel("tungsten per layer [mm]", fontsize=11)
+    ax1.set_ylabel("tagged charm muons (Run 4)", fontsize=11)
+    ax1.legend(fontsize=9); ax1.grid(alpha=0.3)
+    ax1.set_title("Yield rises monotonically with absorber thickness", fontsize=11.5)
+
+    ax2.plot(tw * 10, facc, "-", color="#c44e52", lw=2.2, label="acceptance [%]")
+    ax2.set_xlabel("tungsten per layer [mm]", fontsize=11)
+    ax2.set_ylabel("spectrometer acceptance [%]", color="#c44e52", fontsize=11)
+    ax2.tick_params(axis="y", colors="#c44e52")
+    ax2.set_ylim(0, 50); ax2.grid(alpha=0.3)
+    axb = ax2.twinx()
+    axb.plot(tw * 10, mtot, "-", color="#4c72b0", lw=2.2)
+    axb.set_ylabel("total mass [t]", color="#4c72b0", fontsize=11)
+    axb.tick_params(axis="y", colors="#4c72b0")
+    ax2.set_title("The trade-off: mass gain (blue) vs\nacceptance loss (red)", fontsize=11.5)
+    fig.suptitle("Absorber-thickness optimisation — no yield optimum below 3 cm; "
+                 "the limit is calorimetric, not statistical", fontsize=12.5)
+    _emit(fig, pdf, "18_tungsten_scan")
+
+
 def main():
     global PNG_DIR
     ap = argparse.ArgumentParser(description=__doc__)
@@ -236,6 +342,10 @@ def main():
         page_muon_spectrum(pdf, d)
         page_angular_acceptance(pdf, d)
         page_mass_and_params(pdf, d)
+        import geometry as G
+        cone = F.calibrate_cone(d, G.configure(0.0))
+        page_tungsten_scenarios(pdf, d, cone)
+        page_tungsten_scan(pdf, d, cone)
         if os.path.exists(args.npz_pc):
             page_ic(pdf, d, load(args.npz_pc))
 
