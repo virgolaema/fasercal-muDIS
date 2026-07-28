@@ -21,7 +21,7 @@ so the decay-muon charge *is* the charm sign.  But signing that muon needs a
 **downstream magnetised spectrometer** (FASER2-like) — FASERcal only sees it
 pass through MIP-like.  This toy quantifies how well that works.
 
-**➡ Full write-up with results and figures: [`docs/REPORT.md`](docs/REPORT.md).**
+**➡ Reports:** [`docs/TECHNOTE_chain.md`](docs/TECHNOTE_chain.md) — muon-DIS charm chain in FASERcal (Run 4 yields, dimuon tag, A_c reach). [`docs/REPORT.md`](docs/REPORT.md) — earlier charm/anticharm tagging feasibility study.
 
 ## What the toy computes
 
