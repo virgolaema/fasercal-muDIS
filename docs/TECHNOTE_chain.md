@@ -167,6 +167,50 @@ N = N_ref(250 fb⁻¹, FASERν)
 **Mass is a pure multiplicative factor** — the entire report rescales by editing
 `M_FID_T` alone.
 
+### 5.1 Is there a Run 4 muon flux in the documents? — cross-check
+
+**Yes, but only a normalisation, not a spectrum.** TP §5.7.1 states the Run 4
+background muon flux as **≈1 Hz/cm², ≈500 Hz over the full detector area**.
+Two observations:
+
+- 1 Hz/cm² × 500 cm² = 500 Hz, self-consistent; and 500 cm² is exactly the
+  25 × 20 cm² pixel active area of §5.3 — so **the TP figure is quoted for the
+  ON-AXIS detector**, reinforcing the off-axis caveat below.
+- It is a **rate**, with no energy dependence. The TP gives Run 4 *neutrino*
+  spectra (Fig. 1) but no Run 4 *muon* spectrum.
+
+**Why using the Run 3 flux shape is nevertheless correct.** The muon flux
+*shape* is essentially luminosity-independent: it is set by the LHC optics, the
+absorber/rock geometry along the line of sight, and √s — not by how many
+collisions per second. Between Run 3 and Run 4 only √s changes (13.6 → 14 TeV),
+a few-percent effect on forward production that is not modelled here. What *does*
+scale with luminosity is the **normalisation**, and that is applied explicitly
+(×680/250). So the treatment is: **Run 3 flux shape + Run 4 luminosity
+normalisation**, which is the physically right decomposition.
+
+**Independent normalisation check.** Converting the TP rate to a fluence requires
+an assumed instantaneous luminosity (HL-LHC nominal levelled
+5×10³⁴ cm⁻²s⁻¹ — external knowledge, not in the TP):
+
+    1 Hz/cm² / 5×10³⁴ cm⁻²s⁻¹  =  2.0×10⁴ muons/cm²/fb⁻¹
+                               →  1.36×10⁷ muons/cm² at 680 fb⁻¹
+
+For our 1 m² × 1 m scintillator (areal density 102 g/cm² ≈ 6.1×10²⁵ nucleons/cm²):
+
+| assumed σ_DIS(Q²>1.65) | implied N_DIS | vs our MC (4.53×10⁵) |
+|---|---:|---:|
+| 50 nb | 4.2×10⁵ | 0.92 |
+| 100 nb | 8.4×10⁵ | 1.85 |
+| 200 nb | 1.7×10⁶ | 3.69 |
+
+A naive electroweak estimate 4πα²/Q²_min gives ~1.6×10² nb before structure-function
+and kinematic suppression, so the realistic σ sits in the 50–100 nb range —
+**bracketing our MC value**. The TP's own Run 4 muon rate is therefore
+**consistent with our luminosity-scaled Run 3 normalisation to within the O(2)
+band already flagged**, and does not indicate a missing factor. It does not
+sharpen the normalisation further, because the conversion needs an assumed
+L_inst and an assumed σ_DIS.
+
 ### Two normalisation caveats, stated plainly
 
 1. **Off-axis flux.** The flux set describes the **on-axis line-of-sight** muon
