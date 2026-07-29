@@ -25,17 +25,21 @@ factors, each of which is a separate, checkable assumption:
 MASS is a pure multiplicative factor, so the whole report can be rescaled to the
 real 3DCAL fiducial mass by changing M_FID_T alone.
 
-F_FLUX caveat: the flux set describes the on-axis line-of-sight muon flux.  An
-OFF-AXIS detector sees a reduced flux, and that suppression factor is NOT in the
-Run 4 TP (Sec. 6 is an empty placeholder in v0.01).  F_FLUX is therefore left at
-1.0 = "on-axis-equivalent flux per unit area", and every absolute yield in this
-report must be read as an UPPER BOUND for an off-axis placement until the real
-off-axis flux is supplied.
+F_FLUX caveat: the flux set is evaluated with the detector axis at
+(x,y) = (1 cm, -3.3 cm) w.r.t. the line of sight, i.e. effectively ON-AXIS.
+An off-axis detector does NOT simply see less: the LHC magnetic lattice sweeps
+mu+ and mu- in opposite directions, so the flux is strongly asymmetric about the
+LoS and FLUKA studies report it RISING by up to an order of magnitude in some
+directions beyond ~1 m.  Going off-axis can therefore increase the muon-DIS
+yield.  See the F_FLUX block below; the real off-axis fluence is a REQUIRED
+INPUT that is not yet available.
 
-Independently, the sibling FASERnu study found the absolute flux normalisation
-to sit ~2x below the published rate (unresolved, traced to the flux variant).
-Absolute yields therefore carry an O(2) normalisation uncertainty.  The
-EFFICIENCIES and FRACTIONS in the chain are ratios and are NOT affected.
+Independently, the sibling FASERnu study found the absolute normalisation ~2x
+below the published rate.  Correcting M_REF_T (the flux definition bakes in a
+25x30 cm^2 x 50 cm tungsten target = 0.724 t, not the 1 t previously assumed)
+accounts for a factor 1.38 of that; a residual ~1.7x remains unexplained.
+The EFFICIENCIES and FRACTIONS in the chain are ratios and are unaffected by all
+of this.
 """
 import numpy as np
 
@@ -59,9 +63,36 @@ COMPOSITION = {
 # placeholder, so this is an explicit assumption, chosen equal to the TP
 # benchmark target mass (1 t) so the numbers are directly comparable.
 # EVERY absolute yield scales linearly with this number.
-M_FID_T   = 1.0    # tonne, FASERcal 3DCAL fiducial volume (AHCAL excluded)
-M_REF_T   = 1.0    # tonne, reference mass implicit in the flux normalisation
-F_FLUX    = 1.0    # on-axis-equivalent flux; see module docstring
+M_FID_T = 1.0      # tonne, FASERcal 3DCAL fiducial volume (AHCAL excluded)
+
+# REFERENCE MASS implicit in the flux normalisation.  arXiv:2506.13889 Eq. (2.1)
+# defines the flux as f_mu(x_mu) = n_T L_T dN_mu/dx_mu, i.e. the TUNGSTEN TARGET
+# IS BAKED IN: a 25 x 30 cm^2 face over L_T = 50 cm of tungsten.
+#     25*30*50 cm^3 x 19.3 g/cm^3 = 0.724 t
+# (An earlier version of this code assumed 1.0 t, under-predicting all absolute
+#  yields by a factor 1.38.  See TECHNOTE_chain.md Sec. 5.2.)
+M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
+
+# ------------------------------------------------------------------ off-axis
+# The flux set is evaluated with the detector axis at (x,y) = (1 cm, -3.3 cm)
+# w.r.t. the nominal line of sight (paper Sec. 2), i.e. effectively ON-AXIS.
+#
+# F_FLUX is the ratio of the muon fluence per cm^2 at the actual detector
+# position to that on-axis value.  It is NOT a simple suppression:
+#   * the muon flux is strongly ASYMMETRIC about the LoS because the LHC
+#     magnetic lattice sweeps mu+ and mu- in opposite directions (paper Fig 2.1
+#     shows the resulting large mu/mubar asymmetry);
+#   * FLUKA studies for the FPF report the rate RISING by up to an order of
+#     magnitude in some directions beyond ~1 m from the LoS, and being
+#     substantially higher at ~2 m in the horizontal (bending) plane.
+# So going off-axis can INCREASE the muon-DIS yield.  A plausible working range
+# is ~0.3 (shielded/vertical) to ~10 (horizontal, beam-pipe side).
+#
+# REQUIRED INPUT: the FLUKA muon fluence at the 3DCAL position, or the off-axis
+# flux file used in the FASERcal studies.  Until then F_FLUX = 1.0 means
+# "on-axis-equivalent", and the off-axis scan in the report spans the range.
+F_FLUX = 1.0
+F_FLUX_RANGE = (0.3, 1.0, 3.0, 10.0)
 
 # --------------------------------------------------- detector response (toy)
 # The Run 4 TP Sec. 6.5/6.6 (spectrometer magnet, muon tracker) are empty, so
@@ -93,9 +124,10 @@ def charge_confusion(p, eta0, p_half_gev, p_width_gev, **_):
 
 
 # ------------------------------------------------------- tungsten scenarios
-def yield_per_tonne(d, material, lumi=LUMI_RUN4):
+def yield_per_tonne(d, material, lumi=LUMI_RUN4, f_flux=F_FLUX):
     """Per-event weights for 1 tonne of `material` at `lumi`."""
-    return event_weight(d, material=material, lumi=lumi, m_fid_t=1.0)
+    return event_weight(d, material=material, lumi=lumi, m_fid_t=1.0,
+                        f_flux=f_flux)
 
 
 def calibrate_cone(d, geo_base, params=None, rng=None):
@@ -138,7 +170,7 @@ def smeared_theta(d, geo, rng):
 
 
 def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
-                   rng=None, fixed_envelope=True):
+                   rng=None, fixed_envelope=True, f_flux=F_FLUX):
     """
     Full chain for a sampling geometry with `t_w_cm` tungsten per layer.
 
@@ -153,8 +185,8 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     geo = G.configure(t_w_cm, fixed_envelope=fixed_envelope)
 
     # ---- yields per material, correct composition each ----
-    w = (yield_per_tonne(d, "scintillator_CH", lumi) * geo["m_sc"]
-         + yield_per_tonne(d, "tungsten", lumi) * geo["m_w"])
+    w = (yield_per_tonne(d, "scintillator_CH", lumi, f_flux) * geo["m_sc"]
+         + yield_per_tonne(d, "tungsten", lumi, f_flux) * geo["m_w"])
 
     n_dis = w.sum()
     is_charm = d["n_charm"] >= 1
@@ -185,7 +217,7 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     # representative MCS width at the median decay-muon momentum
     med_p = float(np.median(mu_p[has_mu & (mu_p > 0)]))
     return dict(
-        geo=geo, t_w_cm=t_w_cm,
+        geo=geo, t_w_cm=t_w_cm, f_flux=f_flux,
         n_dis=n_dis, n_charm=n_charm, n_semi=n_semi,
         n_punch=n_punch, n_acc=n_acc, n_tag=n_tag,
         f_charm=n_charm / n_dis if n_dis else 0.0,

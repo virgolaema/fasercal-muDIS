@@ -66,10 +66,11 @@ def page_cutflow(pdf, d, m):
     for j in range(3):
         tab[0, j].set_facecolor("#1f3b57")
         tab[0, j].set_text_props(color="white", fontweight="bold")
-    fig.text(0.5, 0.10,
-             "Absolute yields scale LINEARLY with the assumed 1 t fiducial mass and carry an O(2) "
-             "flux-normalisation uncertainty;\nthey are an upper bound for an off-axis placement. "
-             "The fractions are ratios and are robust against both.",
+    fig.text(0.5, 0.09,
+             "Absolute yields scale LINEARLY with the assumed 1 t fiducial mass and with the "
+             "off-axis flux factor (here on-axis-equivalent).\nOff-axis is NOT necessarily a "
+             "penalty: FLUKA reports the muon rate rising in some directions — see the off-axis "
+             "page.\nThe chain fractions are ratios and are robust against both.",
              ha="center", fontsize=9, style="italic")
     ax.set_title("Muon-DIS charm chain in FASERcal (AHCAL excluded)", fontsize=13, pad=16)
     _emit(fig, pdf, "10_chain_cutflow", tight=False)
@@ -322,6 +323,44 @@ def page_tungsten_scan(pdf, d, cone):
     _emit(fig, pdf, "18_tungsten_scan")
 
 
+def page_offaxis(pdf, d, cone):
+    """
+    Off-axis flux: the single largest unquantified factor.
+
+    The flux set is evaluated essentially ON-AXIS (detector axis at
+    (1 cm, -3.3 cm) from the LoS, arXiv:2506.13889 Sec. 2).  Going off-axis is
+    NOT a simple suppression -- the LHC lattice sweeps mu+/mu- in opposite
+    directions, and FLUKA studies report the rate rising by up to an order of
+    magnitude in some directions beyond ~1 m.  This page spans the plausible
+    range so the answer can be read off once the real fluence is supplied.
+    """
+    import geometry as G
+    ff = np.logspace(np.log10(0.2), np.log10(12.0), 40)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.4))
+    cols = {"baseline_no_W": "#4c72b0", "W_1mm": "#dd8452", "W_5mm": "#c44e52"}
+    for nm, t in G.SCENARIOS.items():
+        tag = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["n_tag"] for f in ff]
+        sig = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["sigma_A"] for f in ff]
+        ax1.plot(ff, tag, "-", lw=2.2, color=cols[nm], label=nm.replace("_", " "))
+        ax2.plot(ff, sig, "-", lw=2.2, color=cols[nm], label=nm.replace("_", " "))
+    for ax in (ax1, ax2):
+        ax.set_xscale("log"); ax.set_yscale("log")
+        ax.axvline(1.0, color="black", ls="--", lw=1.4)
+        ax.axvspan(0.2, 1.0, color="gray", alpha=0.10)
+        ax.axvspan(1.0, 12.0, color="green", alpha=0.07)
+        ax.set_xlabel(r"off-axis flux factor $F_{\rm flux}$ (1 = on-axis)", fontsize=11)
+        ax.legend(fontsize=9); ax.grid(alpha=0.3, which="both")
+    ax1.set_ylabel("tagged charm muons (Run 4)", fontsize=11)
+    ax1.set_title("Yield scales linearly with the off-axis flux", fontsize=11.5)
+    ax2.set_ylabel(r"$\sigma(A_c)$", fontsize=11)
+    ax2.set_title(r"$\sigma(A_c)\propto 1/\sqrt{F_{\rm flux}}$", fontsize=11.5)
+    fig.suptitle("Off-axis flux — the largest unquantified factor. FLUKA reports the rate "
+                 "RISING off-axis in some\ndirections (green), so this is not necessarily a "
+                 "penalty. REQUIRED INPUT: fluence at the 3DCAL position.",
+                 fontsize=11.5)
+    _emit(fig, pdf, "19_offaxis_flux")
+
+
 def main():
     global PNG_DIR
     ap = argparse.ArgumentParser(description=__doc__)
@@ -346,6 +385,7 @@ def main():
         cone = F.calibrate_cone(d, G.configure(0.0))
         page_tungsten_scenarios(pdf, d, cone)
         page_tungsten_scan(pdf, d, cone)
+        page_offaxis(pdf, d, cone)
         if os.path.exists(args.npz_pc):
             page_ic(pdf, d, load(args.npz_pc))
 

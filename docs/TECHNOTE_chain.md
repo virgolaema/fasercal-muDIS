@@ -5,10 +5,16 @@
 semileptonically to a muon, how many of those muons reach the magnetised
 spectrometer, and how well can we identify, reconstruct and link them?
 
-**Answer in one line:** at Run 4 nominal luminosity and a 1 t scintillator
-fiducial mass, **≈4.4×10⁵ muon-DIS interactions → ≈650 charge-signed, vertex-linked
-charm muons**, i.e. **0.15 %** of DIS — giving a statistical reach on the charm
-asymmetry of **σ(A_c) ≈ ±0.04**.
+**Answer in one line:** at Run 4 nominal luminosity, a 1 t scintillator fiducial
+mass and **on-axis-equivalent flux**, **≈6.1×10⁵ muon-DIS interactions → ≈900
+charge-signed, vertex-linked charm muons**, i.e. **0.15 %** of DIS — giving a
+statistical reach on the charm asymmetry of **σ(A_c) ≈ ±0.033**.
+
+> **The off-axis flux is the largest single unknown and is a REQUIRED INPUT
+> (§5.2).** It is *not* a suppression factor: the LHC lattice sweeps µ⁺/µ⁻ in
+> opposite directions, and FLUKA studies report the muon rate *rising* by up to
+> an order of magnitude in some directions beyond ~1 m from the line of sight.
+> Yields scale linearly with it and σ(A_c) as 1/√F_flux.
 
 **With a tungsten absorber** (§8.2) the reach improves substantially and the
 multiple-scattering penalty is far smaller than expected: **1 mm W/layer →
@@ -211,16 +217,83 @@ band already flagged**, and does not indicate a missing factor. It does not
 sharpen the normalisation further, because the conversion needs an assumed
 L_inst and an assumed σ_DIS.
 
+### 5.2 Off-axis flux, and a reference-mass correction
+
+Reading arXiv:2506.13889 §2 in detail turned up **two things**, one a correction
+to this note and one a reversal of a stated caveat.
+
+**(a) The reference mass was wrong — absolute yields were 1.38× too low.**
+Eq. (2.1) of the paper defines the flux as
+
+    f_µ(x_µ) ≡ n_T L_T dN_µ/dx_µ(x_µ)
+
+i.e. **the tungsten target is baked into the flux normalisation**: the nucleon
+density n_T times L_T = 50 cm, over the 25 × 30 cm² FASERν face. That reference
+mass is
+
+    25 × 30 × 50 cm³ × 19.3 g/cm³ = **0.724 t**,  not the 1.0 t assumed here.
+
+Correcting `M_REF_T` raises every absolute yield by **1.382**. It also partly
+closes the long-standing normalisation gap with the paper:
+
+| | our MC (1 t W, 250 fb⁻¹) | paper Table 2.1 | gap |
+|---|---:|---:|---:|
+| before correction | 1.59×10⁵ | 2.7×10⁵ (0.724 t) | **2.34×** |
+| after correction | 2.20×10⁵ | 3.73×10⁵ (scaled to 1 t) | **1.69×** |
+
+So **a factor 1.38 of the known "~2× flux discrepancy" was a target-geometry
+bookkeeping error, not a flux problem.** A residual ~1.7× remains unexplained
+and is still attributed to the flux variant.
+
+**(b) The "off-axis is an upper bound" caveat was wrong — off-axis can be
+*higher*.** The paper places the detector axis at **(x, y) = (1 cm, −3.3 cm)**
+relative to the nominal line of sight, i.e. the flux set is effectively
+**on-axis**. But going off-axis is *not* a monotonic suppression:
+
+- The muon flux is strongly **asymmetric** about the LoS because the LHC magnetic
+  lattice sweeps µ⁺ and µ⁻ in **opposite** directions — the paper's Fig. 2.1
+  shows exactly this as a large µ/µ̄ asymmetry, with µ⁻ dominating at large x_µ.
+- FLUKA studies for the FPF report the muon rate **rising by up to an order of
+  magnitude in some directions beyond ~1 m** from the LoS, and being
+  substantially higher at ~2 m in the horizontal (bending) plane.
+
+A plausible working range for the off-axis factor is therefore **F_flux ≈ 0.3
+(shielded/vertical) to ≈ 10 (horizontal, beam-pipe side)**, spanning a factor 30.
+Yields scale linearly with it and σ(A_c) as 1/√F_flux:
+
+| F_flux | baseline tagged | σ(A_c) | 5 mm W tagged | σ(A_c) |
+|---|---:|---:|---:|---:|
+| ×0.3 | 271 | 0.061 | 1 852 | 0.023 |
+| **×1.0 (on-axis-equiv.)** | **902** | **0.033** | **6 175** | **0.013** |
+| ×3.0 | 2 712 | 0.019 | 18 524 | 0.007 |
+| ×10 | 9 039 | 0.011 | 61 746 | 0.004 |
+
+**REQUIRED INPUT:** the FLUKA muon fluence at the actual 3DCAL position (or the
+off-axis flux file used in the FASERcal studies), together with the position
+itself relative to the LoS. This is the **single largest unquantified factor in
+the study** — larger than the fiducial mass, the residual normalisation gap, and
+every detector assumption combined.
+
+> **A second-order consequence worth checking when that flux arrives.** Magnetic
+> sweeping is momentum-dependent (deflection ∝ 1/p), so an off-axis position does
+> not just rescale the flux — it *reshapes the spectrum*, preferentially
+> selecting lower-momentum muons. Since DIS and charm production both rise
+> steeply with E_µ, a softer off-axis spectrum would partly offset a higher
+> integrated rate. The per-event cache stores `e_in`, so a spectral reweighting
+> can be applied directly once the off-axis flux shape is available — no
+> re-showering needed.
+>
+> Relatedly, off-axis in the bending plane enriches **one beam charge**. That is
+> harmless for inclusive DIS (γ\* exchange is charge-blind, as the paper notes)
+> but is actually *helpful* for the dimuon tag, where a known beam charge makes
+> the opposite-sign/same-sign classification cleaner.
+
 ### Two normalisation caveats, stated plainly
 
-1. **Off-axis flux.** The flux set describes the **on-axis line-of-sight** muon
-   flux. An off-axis detector sees *less*. That suppression factor is not in the
-   TP (§6 is empty). `F_FLUX = 1.0` therefore means "on-axis-equivalent flux per
-   unit area", and **all absolute yields here are an upper bound for an off-axis
-   placement.**
-2. **Known ~2× flux discrepancy.** The sibling FASERν study found this absolute
-   normalisation sitting ~2× below the published rate — unresolved, traced to the
-   flux variant used. Absolute yields therefore carry an **O(2) uncertainty**.
+1. **Off-axis flux — see §5.2.** Superseded: off-axis is *not* a simple
+   suppression, and the naive "upper bound" statement was wrong.
+2. **Residual ~1.7× normalisation gap** after the reference-mass correction of
+   §5.2. Absolute yields carry that uncertainty; fractions do not.
 
 **The efficiencies and fractions in the chain are ratios and are immune to both.**
 They are the robust deliverable; absolute yields should be read with the above.
@@ -271,19 +344,22 @@ Run 4, 680 fb⁻¹, 1 t scintillator fiducial, `production_v1` (fitted charm):
 
 | stage | events | fraction |
 |---|---:|---|
-| Muon DIS in FASERcal fiducial volume | **443 785** | 100 % |
-| … containing charm (≥1 charm hadron) | **12 540** | 2.83 % of DIS |
-| … charm decaying semileptonically to µ | **2 202** | 17.6 % of charm |
-| … µ punches out of calorimeter (p > 2 GeV) | **1 814** | 82.4 % |
-| … reaches spectrometer (40 % acceptance) | **725** | 40 % |
-| … identified + linked to DIS vertex (90 %) | **653** | **0.147 % of DIS** |
+| Muon DIS in FASERcal fiducial volume | **613 174** | 100 % |
+| … containing charm (≥1 charm hadron) | **17 326** | 2.83 % of DIS |
+| … charm decaying semileptonically to µ | **3 042** | 17.6 % of charm |
+| … µ punches out of calorimeter (p > 2 GeV) | **2 506** | 82.4 % |
+| … reaches spectrometer (40 % acceptance) | **1 002** | 40 % |
+| … identified + linked to DIS vertex (90 %) | **902** | **0.147 % of DIS** |
+
+*(Normalisation corrected per §5.2(a): ×1.382 relative to the first version of
+this note. Fractions are unchanged — they are ratios.)*
 
 | quantity | value |
 |---|---|
 | charge-tag purity (c vs c̄) | 97.3 % |
 | mean charge confusion η | 2.7 % |
 | truth charm asymmetry A_c | −0.022 |
-| **statistical reach σ(A_c)** | **±0.039** |
+| **statistical reach σ(A_c)** | **±0.033** |
 | raw MC events behind the tagged sample | 10 002 (statistically solid) |
 
 Supporting distributions:
