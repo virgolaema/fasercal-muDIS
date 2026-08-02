@@ -10,11 +10,11 @@ mass and **on-axis-equivalent flux**, **≈6.1×10⁵ muon-DIS interactions → 
 charge-signed, vertex-linked charm muons**, i.e. **0.15 %** of DIS — giving a
 statistical reach on the charm asymmetry of **σ(A_c) ≈ ±0.033**.
 
-> **The off-axis flux is the largest single unknown and is a REQUIRED INPUT
-> (§5.2).** It is *not* a suppression factor: the LHC lattice sweeps µ⁺/µ⁻ in
-> opposite directions, and FLUKA studies report the muon rate *rising* by up to
-> an order of magnitude in some directions beyond ~1 m from the line of sight.
-> Yields scale linearly with it and σ(A_c) as 1/√F_flux.
+> **Off-axis is a BONUS, not a penalty — now measured from FLUKA (§5.2).** The
+> muon flux *rises* off-axis, up to **×4.9** at (−100, +50) cm, and the spectrum
+> gets *harder* (⟨p⟩ 931 → ~2000 GeV), which compounds the gain. At the best
+> measured position the reach becomes **σ(A_c) = 0.015 (baseline)** or
+> **0.006 (5 mm W)**. The remaining input needed is the actual 3DCAL position.
 
 **With a tungsten absorber** (§8.2) the reach improves substantially and the
 multiple-scattering penalty is far smaller than expected: **1 mm W/layer →
@@ -257,22 +257,60 @@ relative to the nominal line of sight, i.e. the flux set is effectively
   magnitude in some directions beyond ~1 m** from the LoS, and being
   substantially higher at ~2 m in the horizontal (bending) plane.
 
-A plausible working range for the off-axis factor is therefore **F_flux ≈ 0.3
-(shielded/vertical) to ≈ 10 (horizontal, beam-pipe side)**, spanning a factor 30.
-Yields scale linearly with it and σ(A_c) as 1/√F_flux:
+**Now MEASURED, not assumed.** The FLUKA muon simulation used to build the flux
+grids is accessible on EOS, and its ntuples carry the muon production positions,
+so the off-axis factor can be computed directly rather than parametrised
+([`python/fluka_offaxis_map.py`](../python/fluka_offaxis_map.py), source
+`/eos/experiment/fasernu-data0/faser/sim/mc22/fluka/210007/bck/s0010-r0019`).
+Conventions taken from the collaboration's own converter
+`muondisgenerator/muon_fluxes/read_fluka_sim.cpp`: positions in mm with the
+origin on the FASERν axis, momenta in MeV, `weight = CrossSection x 2.0/1.3713`
+for per-fb⁻¹, first truth particle only, duplicate events removed.
 
-| F_flux | baseline tagged | σ(A_c) | 5 mm W tagged | σ(A_c) |
-|---|---:|---:|---:|---:|
-| ×0.3 | 271 | 0.061 | 1 852 | 0.023 |
-| **×1.0 (on-axis-equiv.)** | **902** | **0.033** | **6 175** | **0.013** |
-| ×3.0 | 2 712 | 0.019 | 18 524 | 0.007 |
-| ×10 | 9 039 | 0.011 | 61 746 | 0.004 |
+F_flux for a FASERν-sized window (28 x 40 cm) centred at (x₀,y₀), relative to
+on-axis:
 
-**REQUIRED INPUT:** the FLUKA muon fluence at the actual 3DCAL position (or the
-off-axis flux file used in the FASERcal studies), together with the position
-itself relative to the LoS. This is the **single largest unquantified factor in
-the study** — larger than the fiducial mass, the residual normalisation gap, and
-every detector assumption combined.
+| x₀ [cm] | y₀=0 | y₀=+50 | y₀=+100 | ⟨p⟩ [GeV] | µ⁺ fraction |
+|---:|---:|---:|---:|---:|---:|
+| +100 | 1.49 | 0.98 | 1.88 | 1973 | 0.09 |
+| **0 (reference)** | **1.00** | 1.42 | 1.43 | **931** | **0.27** |
+| −50 | 1.88 | 2.99 | 1.76 | 1969 | 0.78 |
+| −100 | **3.89** | **4.94** | 2.43 | 2079 | 0.74 |
+
+**Three measured features, all favourable:**
+
+1. **The flux rises off-axis**, up to **×4.9** at (−100, +50) cm — confirming the
+   FPF FLUKA claim and definitively killing the "off-axis is a penalty" caveat.
+2. **Strong left/right asymmetry** — the −x side carries 2–4× the +x side, the
+   direct signature of magnetic sweeping.
+3. **The spectrum gets HARDER off-axis** (⟨p⟩ 931 → ~2000 GeV), *not* softer.
+   This **contradicts the prediction made in an earlier version of this note**,
+   which argued that momentum-dependent sweeping would preferentially select
+   *low*-momentum muons. The measurement says otherwise. Since DIS and charm
+   yields both rise with E_µ, the harder spectrum **compounds** the flux gain
+   rather than offsetting it, so the numbers below are if anything conservative.
+
+The **µ⁺ fraction flips from 0.27 on-axis to ~0.75 at −x**: the lobes are
+charge-separated, as predicted. A known, dominant beam charge makes the
+opposite-sign/same-sign dimuon classification cleaner.
+
+**Chain at the measured off-axis positions** (Run 4, 1 t fiducial):
+
+| | on-axis | (−100, 0) F=3.89 | (−100,+50) F=4.94 |
+|---|---:|---:|---:|
+| baseline tagged / σ(A_c) | 904 / 0.033 | 3 516 / 0.017 | 4 465 / 0.015 |
+| 1 mm W tagged / σ(A_c) | 2 348 / 0.021 | 9 133 / 0.010 | 11 599 / 0.009 |
+| 5 mm W tagged / σ(A_c) | 6 175 / 0.013 | 24 019 / 0.006 | 30 502 / 0.006 |
+
+**Caveats.** Modest statistics (585 raw muons in the on-axis reference window,
+so ~4 % there and worse in some bins); the |x₀| = 150 cm points are at the edge
+of the simulated region and unreliable; and the map is a *ratio* of areal
+fluences, so it is immune to — but cannot resolve — the residual ~1.7 %
+normalisation puzzle. Statistics are trivially improved by running the script
+over more of the 5 GB of FLUKA files.
+
+**Still required:** the actual 3DCAL position relative to the LoS, to pick the
+right row of the table.
 
 > **A second-order consequence worth checking when that flux arrives.** Magnetic
 > sweeping is momentum-dependent (deflection ∝ 1/p), so an off-axis position does

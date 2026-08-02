@@ -88,11 +88,30 @@ M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
 # So going off-axis can INCREASE the muon-DIS yield.  A plausible working range
 # is ~0.3 (shielded/vertical) to ~10 (horizontal, beam-pipe side).
 #
-# REQUIRED INPUT: the FLUKA muon fluence at the 3DCAL position, or the off-axis
-# flux file used in the FASERcal studies.  Until then F_FLUX = 1.0 means
-# "on-axis-equivalent", and the off-axis scan in the report spans the range.
-F_FLUX = 1.0
-F_FLUX_RANGE = (0.3, 1.0, 3.0, 10.0)
+# MEASURED from the FASER FLUKA simulation by python/fluka_offaxis_map.py
+# (source: /eos/experiment/fasernu-data0/faser/sim/mc22/fluka/210007/bck/s0010-r0019).
+# F_flux for a FASERnu-sized window centred at (x0,y0) cm, relative to on-axis:
+#
+#        y0=0    y0=+50  y0=+100        <p> [GeV]      mu+ fraction
+#   x0=+100  1.49   0.98    1.88          1973            0.09
+#   x0=   0  1.00   1.42    1.43           931            0.27  <- reference
+#   x0= -50  1.88   2.99    1.76          1969            0.78
+#   x0=-100  3.89   4.94    2.43          2079            0.74
+#
+# Three measured features, all favourable:
+#   1. the flux RISES off-axis, up to ~4.9x at (-100,+50) cm;
+#   2. it is strongly left/right ASYMMETRIC (the -x side is 2-4x the +x side),
+#      as expected from magnetic sweeping;
+#   3. the spectrum gets HARDER off-axis (<p> 931 -> ~2000 GeV), not softer as
+#      naively expected -- and DIS/charm yields rise with E_mu, so this
+#      compounds the flux gain.
+# The mu+ fraction flips from 0.27 on-axis to ~0.75 at -x: the lobes are
+# charge-separated, which helps the dimuon tag (known beam charge).
+#
+# Caveat: modest statistics (585 raw muons in the on-axis window) and the
+# |x0|=150 cm points are at the edge of the simulated region and unreliable.
+F_FLUX = 1.0                     # 1.0 = on-axis reference window
+F_FLUX_RANGE = (1.0, 2.0, 3.9, 4.9)   # measured on-axis .. best off-axis
 
 # --------------------------------------------------- detector response (toy)
 # The Run 4 TP Sec. 6.5/6.6 (spectrometer magnet, muon tracker) are empty, so
