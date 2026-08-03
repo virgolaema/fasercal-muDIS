@@ -74,6 +74,15 @@ RESOLUTIONS = dict(
     # Jacquet-Blondel methods depend on it.  NOT taken from any document.
     sigma_theta_had=20.0e-3,
     muon_scale=1.0,        # multiply the CDR muon resolution (1.0 = as measured)
+    # Subtract the energy carried off by neutrinos from charm semileptonic
+    # decays.  This is an IRREDUCIBLE, ONE-SIDED loss and it is specific to the
+    # signal events -- exactly the ones we select.  From the 25-seed sample:
+    # nonzero in 35% of charm events, median 13.2 GeV = 8.4% of nu when nonzero,
+    # and >10% of nu for 21% of the x>=0.2 charm sample.
+    # Caveat: the 9% hadronic resolution quoted by the Bern talk is derived from
+    # full simulation of neutrino events, which also contain charm decays, so
+    # this may partially double-count.  Switchable for exactly that reason.
+    subtract_nu=True,
 )
 
 
@@ -176,7 +185,10 @@ def smear(d, rng, res=None):
     thmu = np.maximum(d["theta_mu"] + rng.normal(0.0, r["sigma_theta"], size=n), 1e-6)
 
     h = hadronic_truth(d)
-    ehad = np.maximum(gauss(h["e"], r["sigma_had"]), 1e-3)
+    e_vis = h["e"]
+    if r["subtract_nu"] and "e_nu_charm" in d:
+        e_vis = np.maximum(e_vis - d["e_nu_charm"], 1e-3)
+    ehad = np.maximum(gauss(e_vis, r["sigma_had"]), 1e-3)
     # smear the hadronic DIRECTION independently of its magnitude
     th_h = np.arctan2(h["pt"], np.maximum(h["pz"], 1e-9))
     th_h = np.clip(th_h + rng.normal(0.0, r["sigma_theta_had"], size=n), 1e-6, np.pi - 1e-6)

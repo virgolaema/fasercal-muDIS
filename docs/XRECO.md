@@ -161,15 +161,49 @@ Three fixes were tried and **all failed**:
 Conservation is exact and makes the closure exact by construction, which is what
 a resolution study needs.
 
-**Not modelled, and it matters:**
+## Are the calorimetric methods viable given neutral particles? — Yes.
 
-- **Neutrinos from charm semileptonic decays** carry energy away, biasing the
-  *measurable* E_had low for precisely the signal events. This affects the
-  calorimetric methods and is not in these numbers.
-- Charged/neutral shower composition and its detector response, folded into the
-  single σ_had parameter.
-- The ~9 % hadronic resolution is quoted for the full 3DCAL+ECAL+AHCAL chain; the
-  3DCAL alone will be worse.
+This was the main threat to the whole argument, and it is now **modelled, not
+assumed away**.
+
+**Neutrinos from charm semileptonic decays** escape entirely. This is an
+irreducible, one-sided loss and it is *specific to the signal events*. Measured
+on the 25-seed sample:
+
+| | value |
+|---|---|
+| charm events with a charm neutrino | **35 %** |
+| when nonzero, median E_ν | **13.2 GeV = 8.4 % of ν** |
+| x ≥ 0.2 charm events losing >10 % of ν | **21 %** |
+
+Effect on the result (eff × purity at x ≥ 0.2):
+
+| method | no ν loss | **with ν loss** | change |
+|---|---:|---:|---:|
+| lepton-only | 0.151 | 0.151 | 0 % (uses no E_had) |
+| Jacquet–Blondel | 0.292 | 0.262 | **−10 %** |
+| **Σ** | 0.433 | **0.444** | +3 % |
+| double-angle | 0.506 | 0.506 | 0 % |
+
+**It costs Jacquet–Blondel 10 % and Σ nothing.** Σ is protected because the loss
+biases ν low, which pushes x_Σ *up* and hence into the selection — efficiency and
+purity move in opposite directions and largely cancel.
+
+*Caveat:* the 9 % hadronic resolution from the Bern talk is derived from full
+simulation of neutrino events, which also contain charm decays, so this may
+partially double-count. The effect is switchable (`subtract_nu`) for that reason.
+
+**Neutral hadrons** (n, K_L), which respond poorly in a non-compensating
+calorimeter, are only **8 %** of the visible energy on the x ≥ 0.2 charm sample
+(EM 22 %, charged hadrons 63 %). Too small to overturn anything, and already
+folded into the quoted σ_had.
+
+**Still not modelled:**
+
+- Non-compensation as an explicit e/h response difference with event-by-event π⁰
+  fluctuations — subsumed into the single σ_had parameter.
+- The ~9 % is quoted for the full 3DCAL+ECAL+AHCAL chain; the 3DCAL alone will be
+  worse, and this study excludes the AHCAL from the fiducial volume.
 
 ## Plots
 
