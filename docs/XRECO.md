@@ -68,6 +68,83 @@ reconstruct it from the final state.
 > despite worse angular resolution, because it has an energy measurement emulsion
 > cannot provide"* — is **supported**.
 
+## How much of the selected sample is actually intrinsic charm?
+
+The cut x ≥ 0.2 is well chosen: at **truth** level the charm above it is almost
+entirely IC-attributable (IC fraction = 1 − N_perturbative/N_fitted):
+
+| x bin | IC fraction |
+|---|---:|
+| 0.1–0.2 | 85 % |
+| 0.2–0.3 | **98 %** |
+| 0.3–0.4 | 99 % |
+| > 0.4 | ~100 % |
+| **integrated x ≥ 0.2** | **~99 %** |
+
+**But that is not what you select.** Migration from low x — where there is no IC —
+dilutes it, and the dilution is just the purity in physics terms:
+
+| selection | IC fraction | rel. IC yield |
+|---|---:|---:|
+| truth x ≥ 0.2 | 99 % | — |
+| lepton-only | 82 % | 0.28 |
+| Jacquet–Blondel | 38 % | 1.74 |
+| Σ | 64 % | 1.00 |
+| double-angle | 72 % | 1.01 |
+| **Σ AND double-angle** | **95 %** | 0.58 |
+| all three | 97 % | 0.43 |
+
+So a single method leaves the selected sample **one-third ordinary charm** (Σ) to
+**nearly two-thirds** (JB). Note lepton-only gives the purest *single*-method
+sample (82 %) but keeps only 24 % of the signal, so in absolute terms it has
+~3.5× fewer IC events than Σ.
+
+> **Caveat.** The perturbative sample above x = 0.2 has **N_eff = 7** (966 raw
+> events, one carrying 9 % of the weight). The 99 % is robust only because the
+> perturbative contribution is small to begin with — a factor-2 error still
+> leaves ~97 %. But the perturbative *yield itself* should not be quoted, and any
+> ratio-based statement there needs a dedicated high-statistics `production_pc`.
+
+## Combining methods — it works, and substantially
+
+The methods fail for **different reasons**, so their errors are not all
+correlated. Correlation of log(x_reco/x_true) on charm events:
+
+| | lepton | JB | Σ | DA |
+|---|---:|---:|---:|---:|
+| lepton-only | 1.00 | −0.03 | 0.65 | −0.05 |
+| Jacquet–Blondel | −0.03 | 1.00 | −0.01 | **0.94** |
+| Σ | 0.65 | −0.01 | 1.00 | **0.08** |
+| double-angle | −0.05 | 0.94 | 0.08 | 1.00 |
+
+**Σ and double-angle are nearly independent (0.08)** — Σ is driven by the
+calorimetric energy, double-angle by the angles. JB and double-angle are
+redundant (0.94), both being hadronic-system-driven.
+
+Requiring both:
+
+| selection | efficiency | purity | eff × purity |
+|---|---:|---:|---:|
+| lepton-only | 23.7 % | 63.8 % | 0.151 |
+| Σ | 77.1 % | 57.6 % | 0.444 |
+| double-angle | 82.5 % | 61.3 % | 0.506 |
+| **Σ AND double-angle** | **66.3 %** | **85.7 %** | **0.568** |
+| all three | 54.9 % | 94.7 % | 0.520 |
+
+**Σ AND double-angle is the best selection: 0.568, ×3.8 over lepton-only**, and it
+lifts the IC fraction from 64 % to **95 %**. Adding JB buys purity (94.7 %) but
+costs more efficiency than it gains, because JB is redundant with double-angle.
+
+Two practical notes:
+
+- **The combination needs E_in measured**, since double-angle does. If it is not,
+  the fallback is **Σ AND Jacquet–Blondel** (their correlation is −0.01, also
+  independent): efficiency 60.8 %, purity 84.5 %, product 0.514 — still ×3.4 over
+  lepton-only.
+- This is a simple AND of two cuts. A proper **constrained kinematic fit** using
+  all measurements with their covariances (as in arXiv:2506.13889 §4.2) should do
+  better still, and is the natural next step.
+
 ## Why lepton-only fails
 
 | | median |
