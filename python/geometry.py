@@ -144,6 +144,52 @@ def cdr_config(t_w_cm, fiducial=True):
                 mass_full_kg=c["mass_kg"], length_mm=c["length_mm"])
 
 
+# ---------------------------------------------------------------------------
+# AHCAL, as an OPTIONAL additional target volume.
+#
+# Bern CM talk: ~3.3 t.  CDR Table 3: "~3 tons; 40 layers of 2 cm Fe + 0.3 cm
+# scintillator; granularity 4x4 cm^2".  CDR Sec. 2.5.2 quotes 5.5 t for the
+# prototype including structure, and a sensitive area of 720 x 720 mm^2.
+# Per the resolution rule the talk's 3.3 t is used; it is also what the layer
+# structure gives from first principles:
+#     Fe    : 40 x 2.0 cm x (72 x 72 cm^2) x 7.87 = 3.26 t
+#     scint : 40 x 0.3 cm x (72 x 72 cm^2) x 1.02 = 0.06 t
+# i.e. the AHCAL target is ~98% IRON by mass -- hence the "iron" composition.
+#
+# Being a sampling calorimeter, interactions in the absorber ARE measured, so
+# the whole mass is target, not just the scintillator tiles.  The catch is
+# granularity: 4x4 cm^2 tiles over 40 layers, versus 1 cm^3 voxels in the
+# 3DCAL, so vertex finding and muon-to-vertex linking are much harder.  That
+# enters the chain as a LOWER identification+linking efficiency, which is why
+# the report shows the result against efficiency rather than assuming one.
+AHCAL = dict(
+    n_layers=40, fe_cm=2.0, sc_cm=0.3, face_cm=72.0,
+    rho_fe=7.87, rho_sc=1.02,
+)
+
+
+def ahcal_config(fiducial_frac=0.48):
+    """
+    AHCAL target mass, split by material.
+
+    `fiducial_frac` defaults to the same 0.48 as the 3DCAL (CDR Table 8) for
+    consistency.  NOTE this is an assumption: the AHCAL is only ~5 lambda deep
+    in total, so a containment-driven cut could be considerably harsher.
+    """
+    a = AHCAL
+    area = a["face_cm"] ** 2
+    len_fe = a["n_layers"] * a["fe_cm"]
+    len_sc = a["n_layers"] * a["sc_cm"]
+    m_fe = area * len_fe * a["rho_fe"] / 1.0e6 * fiducial_frac
+    m_sc = area * len_sc * a["rho_sc"] / 1.0e6 * fiducial_frac
+    return dict(m_fe=m_fe, m_sc=m_sc, m_tot=m_fe + m_sc,
+                m_full_t=(area * len_fe * a["rho_fe"]
+                          + area * len_sc * a["rho_sc"]) / 1.0e6,
+                len_fe=len_fe, len_sc=len_sc, f_fiducial=fiducial_frac,
+                x0_total=len_fe / 1.757 + len_sc / X0_SC,
+                lambda_int=len_fe / (132.1 / 7.87) + len_sc / LAMBDA_T_SC)
+
+
 SCENARIOS = {
     "W_1mm_module":  0.1,      # CDR/talk baseline
     "W_5mm_module":  0.5,

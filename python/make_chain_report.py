@@ -106,6 +106,10 @@ def page_conditions(pdf, d):
         ("Muon flux", "FASERnu Run 3 LHAPDF grid 'var2' (25x30 cm)", "arXiv:2506.13889 Eq. 2.1"),
         ("Off-axis flux factor", f"$F_{{\\rm flux}}$ = {F.F_FLUX:.2f} at (+452,+236) mm",
          "FLUKA map, this work"),
+        ("Run 4 optics enhancement", f"$F_{{\\rm optics}}$ = {F.F_OPTICS:.1f} (rate $\\times$2, harder)",
+         "CDR Sec. 1.3.2"),
+        ("AHCAL as extra target (optional)", "3.33 t total, 1.60 t fiducial, ~98% Fe",
+         "CDR Table 3 / talk"),
         ("Detector side", "left of LoS looking downstream = $+x$", "user; right-handed frame"),
         ("Spectrometer acceptance", f"{100*F.DEFAULTS['acc_spectrometer']:.0f}% "
                                     "($\\geq$2 MDT stations)", "talk slide 33"),
@@ -122,32 +126,41 @@ def page_conditions(pdf, d):
     _emit(fig, pdf, "09_conditions", tight=False)
 
 
-def page_cutflow(pdf, d, m):
-    """The requested chain, as an explicit cutflow table."""
-    fig, ax = plt.subplots(figsize=(11.5, 7)); ax.axis("off")
+def page_cutflow(pdf, d, m, m_ah=None):
+    """The requested chain, with and without the AHCAL as an extra target."""
+    import geometry as G
+    fig, ax = plt.subplots(figsize=(12.5, 7)); ax.axis("off")
+    a = m_ah or {k: float("nan") for k in m}
+    def two(k, fmt="{:,.0f}"):
+        return [fmt.format(m[k]), fmt.format(a[k])]
     rows = [
-        ("Muon DIS interactions in FASERcal fiducial volume", f"{m['n_dis']:,.0f}", "100%"),
-        ("  ... containing charm ($\\geq$1 charm hadron)", f"{m['n_charm']:,.0f}",
-         f"{100*m['f_charm']:.2f}%"),
-        ("  ... charm decaying semileptonically to $\\mu$", f"{m['n_semi']:,.0f}",
-         f"{100*m['f_semi']:.1f}% of charm"),
-        (f"  ... $\\mu$ punches out of calorimeter ($p>{F.DEFAULTS['p_punch_gev']:.0f}$ GeV)",
-         f"{m['n_punch']:,.0f}", f"{100*m['f_punch']:.1f}% of semilep."),
-        (f"  ... reaches spectrometer ({100*F.DEFAULTS['acc_spectrometer']:.0f}% acceptance)",
-         f"{m['n_acc']:,.0f}", f"{100*F.DEFAULTS['acc_spectrometer']:.0f}%"),
-        (f"  ... identified + linked to DIS vertex ({100*F.DEFAULTS['eff_link']:.0f}%)",
-         f"{m['n_tag']:,.0f}", f"{100*m['f_overall']:.3f}% of DIS"),
-        ("", "", ""),
-        ("Charge-tag purity (c vs $\\bar{c}$)", "", f"{100*m['purity_q']:.1f}%"),
-        ("Statistical reach on $A_c$", "", f"$\\pm${m['sigma_A']:.3f}"),
+        ["Muon DIS interactions in fiducial volume"] + two("n_dis") + ["100%"],
+        ["  ... containing charm ($\\geq$1 charm hadron)"] + two("n_charm")
+            + [f"{100*m['f_charm']:.2f}%"],
+        ["  ... charm decaying semileptonically to $\\mu$"] + two("n_semi")
+            + [f"{100*m['f_semi']:.1f}% of charm"],
+        [f"  ... $\\mu$ punches out ($p>{F.DEFAULTS['p_punch_gev']:.0f}$ GeV)"] + two("n_punch")
+            + [f"{100*m['f_punch']:.1f}%"],
+        [f"  ... reaches spectrometer ({100*F.DEFAULTS['acc_spectrometer']:.0f}%)"] + two("n_acc")
+            + [f"{100*F.DEFAULTS['acc_spectrometer']:.0f}%"],
+        [f"  ... identified + linked ($\\varepsilon$={F.DEFAULTS['eff_link']:.2f})"] + two("n_tag")
+            + [f"{100*m['f_overall']:.3f}% of DIS"],
+        ["", "", "", ""],
+        ["Charge-tag purity (c vs $\\bar{c}$)", f"{100*m['purity_q']:.1f}%",
+         f"{100*a['purity_q']:.1f}%", "CDR Sec. 2.6.2"],
+        ["Statistical reach on $A_c$", f"$\\pm${m['sigma_A']:.3f}",
+         f"$\\pm${a['sigma_A']:.3f}", ""],
     ]
     tab = ax.table(cellText=rows,
-                   colLabels=[f"FASERcal chain — Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$, "
-                              f"{F.M_FID_T:.3f} t 3DCAL",
-                              "yield", "fraction"],
-                   colWidths=[0.58, 0.21, 0.21], loc="center", cellLoc="left")
-    tab.auto_set_font_size(False); tab.set_fontsize(10.5); tab.scale(1, 1.75)
-    for j in range(3):
+                   colLabels=[f"FASERcal chain — Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$",
+                              f"3DCAL only\n({1e3*G.cdr_config(0.1)['m_tot']:.0f} kg)",
+                              f"3DCAL + AHCAL\n({1e3*(G.cdr_config(0.1)['m_tot']+G.ahcal_config()['m_tot']):.0f} kg)",
+                              "fraction"],
+                   colWidths=[0.44, 0.19, 0.19, 0.18], loc="center", cellLoc="left")
+    tab.auto_set_font_size(False); tab.set_fontsize(10); tab.scale(1, 1.85)
+    for j in range(4):
+        tab[0, j].set_text_props(fontweight="bold")
+    for j in range(4):
         tab[0, j].set_facecolor("#1f3b57")
         tab[0, j].set_text_props(color="white", fontweight="bold")
     fig.text(0.5, 0.09,
@@ -430,27 +443,24 @@ def page_efficiency(pdf, d, cone):
     palette = ["#4c72b0", "#dd8452", "#c44e52"]
 
     for i, (nm, t) in enumerate(G.SCENARIOS.items()):
-        c = palette[i % 3]
-        lab = nm.replace("_", " ")
-        # F_flux = 1 (nominal) with a band up to 2 (the -X side of the LoS)
-        base1 = F.chain_scenario(d, t, cone=cone, f_flux=1.0,
-                                 params={"eff_link": 1.0})
-        base2 = F.chain_scenario(d, t, cone=cone, f_flux=2.0,
-                                 params={"eff_link": 1.0})
-        n1 = base1["n_tag"] * eff
-        n2 = base2["n_tag"] * eff
-        ax1.plot(eff, n1, "-", lw=2.3, color=c, label=lab)
-        ax1.fill_between(eff, n1, n2, color=c, alpha=0.16)
-        ax2.plot(eff, 1.0 / np.sqrt(n1), "-", lw=2.3, color=c, label=lab)
-        ax2.fill_between(eff, 1.0 / np.sqrt(n1), 1.0 / np.sqrt(n2),
-                         color=c, alpha=0.16)
+        c = palette[i % len(palette)]
+        lab = nm.replace("_module", "").replace("_", " ")
+        for ahcal, ls, alpha in [(False, "-", 1.0), (True, "--", 0.85)]:
+            base = F.chain_scenario(d, t, cone=cone, f_flux=F.F_FLUX,
+                                    include_ahcal=ahcal,
+                                    params={"eff_link": 1.0})
+            n = base["n_tag"] * eff
+            tag = lab + (" + AHCAL" if ahcal else " (3DCAL)")
+            ax1.plot(eff, n, ls, lw=2.2, color=c, alpha=alpha, label=tag)
+            ax2.plot(eff, 1.0 / np.sqrt(n), ls, lw=2.2, color=c, alpha=alpha,
+                     label=tag)
 
     for ax in (ax1, ax2):
-        ax.set_xlabel("identification + linking efficiency", fontsize=11.5)
+        ax.set_xlabel("identification + linking efficiency $\\varepsilon$", fontsize=11.5)
         ax.set_xlim(0.05, 1.0)
         ax.grid(alpha=0.3, which="both")
-        ax.legend(fontsize=9.5, title="shaded: $F_{\\rm flux}$ 1 $\\to$ 2",
-                  title_fontsize=8.5)
+        ax.legend(fontsize=8.2, ncol=2,
+                  title="solid: 3DCAL only   dashed: + AHCAL", title_fontsize=8.2)
     ax1.set_ylabel("charge-signed, linked charm muons", fontsize=11.5)
     ax1.set_title("Tagged yield is LINEAR in the efficiency", fontsize=11.5)
     ax2.set_ylabel(r"$\sigma(A_c)$", fontsize=12)
@@ -458,8 +468,12 @@ def page_efficiency(pdf, d, cone):
     ax2.set_title(r"Statistical reach: $\sigma(A_c)\propto 1/\sqrt{\varepsilon}$",
                   fontsize=11.5)
 
-    fig.suptitle("Main result vs the identification + linking efficiency "
-                 f"(Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$, 3DCAL only)", fontsize=12.5)
+    fig.suptitle("Main result vs the identification + linking efficiency  "
+                 f"(Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$, $F_{{\\rm flux}}$={F.F_FLUX:.2f}, "
+                 f"$F_{{\\rm optics}}$={F.F_OPTICS:.1f})\n"
+                 "The AHCAL adds ~5.8x the 3DCAL target mass, but its coarse 4x4 cm$^2$ "
+                 "granularity should be read as a LOWER $\\varepsilon$ — compare curves at "
+                 "different $\\varepsilon$, not at the same one", fontsize=11)
     _emit(fig, pdf, "20_efficiency_scan")
 
 
@@ -518,7 +532,9 @@ def main():
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with PdfPages(args.output) as pdf:
         page_conditions(pdf, d)
-        page_cutflow(pdf, d, m)
+        m_ah = F.chain_scenario(d, 0.1, cone=F.calibrate_cone(d, __import__("geometry").cdr_config(0.1)),
+                                f_flux=F.F_FLUX, include_ahcal=True)
+        page_cutflow(pdf, d, m, m_ah)
         page_funnel(pdf, m)
         page_muon_spectrum(pdf, d)
         page_angular_acceptance(pdf, d)

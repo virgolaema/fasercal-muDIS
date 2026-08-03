@@ -59,6 +59,9 @@ LUMI_RUN4_TP = 680.0   # the value printed in the Run 4 TP v0.01
 COMPOSITION = {
     "scintillator_CH": dict(w_p=56.0 / 104.0, w_n=48.0 / 104.0, rho=1.02),
     "tungsten":        dict(w_p=74.0 / 184.0, w_n=110.0 / 184.0, rho=19.3),
+    # Fe-56: 26 protons, 30 neutrons.  Needed for the AHCAL, whose mass is
+    # dominated by its steel absorber.
+    "iron":            dict(w_p=26.0 / 56.0,  w_n=30.0 / 56.0,   rho=7.87),
 }
 
 # ------------------------------------------------------------------- geometry
@@ -126,6 +129,37 @@ M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
 # charge-separated; the +x side, where FASERCal sits, is close to the on-axis
 # value.
 F_FLUX = 0.96                    # measured at the designed (+452,+236) mm
+
+# ------------------------------------------------------- Run 4 beam optics
+# The muon flux does NOT simply scale with luminosity from Run 3 to Run 4: the
+# LHC optics change too, and they make the muon background substantially worse.
+# FASERCal CDR v0 Sec. 1.3.2, verbatim:
+#   "For 2022 and 2023 Run 3 physics, the LHC used a 160 urad downward crossing
+#    angle. For 2024 running the crossing angle has moved upwards; these reverse
+#    polarity optics reduce the radiation incident on magnets close to IP1. In
+#    order to match these changes, the Q4 magnet ... has been switched off. The
+#    collimators for the outgoing beam also have looser settings as a result and
+#    are less effective at removing potential background.
+#    An early test of the 2024 configuration suggests an increased rate of
+#    background muons at FASER, increasing the rate by a factor of 2 and
+#    increasing the energy of the muons. These tests particularly suggest a
+#    large increase in high-momentum, positively charged muons. ...
+#    The plan for Run 4 is also to have a horizontal crossing angle, increased
+#    to 250 urad. Various optics configurations are being tested; however, it is
+#    not clear whether the dramatic increase in muon flux can be mitigated."
+#
+# The FLUKA sample used to build both the LHAPDF flux grid and the off-axis map
+# is the Run 3 (MC22) production, so this enhancement is NOT already contained
+# in the weights and must be applied explicitly.
+#
+# F_OPTICS = 2.0 is the CDR's own "factor of 2".  Two caveats, both in the
+# direction of this being CONSERVATIVE:
+#   * it is quoted for the 2024 configuration, while Run 4 goes further (250 urad
+#     horizontal) with mitigation explicitly "not clear";
+#   * the spectrum also HARDENS, and both the DIS cross-section and the charm
+#     fraction rise with E_mu, so a pure rate rescaling under-counts the gain.
+# Set F_OPTICS = 1.0 to recover pure luminosity scaling (the previous behaviour).
+F_OPTICS = 2.0
 F_FLUX_RANGE = (0.96, 2.02)   # FASERCal position, and its mirror
 
 # --------------------------------------------------- detector response (toy)
@@ -153,11 +187,20 @@ DEFAULTS = dict(
 
 
 def event_weight(d, material="scintillator_CH", lumi=LUMI_RUN4,
-                 m_fid_t=M_FID_T, f_flux=F_FLUX):
-    """Per-event expected count in the FASERcal fiducial volume at `lumi`."""
+                 m_fid_t=M_FID_T, f_flux=F_FLUX, f_optics=None):
+    """
+    Per-event expected count in the FASERcal fiducial volume at `lumi`.
+
+        N = w_raw x composition
+              x (lumi / 250)      luminosity scaling
+              x (m_fid / M_REF)   target mass
+              x f_flux            off-axis position (FLUKA map)
+              x f_optics          Run 4 beam-optics enhancement (CDR 1.3.2)
+    """
     c = COMPOSITION[material]
+    f_optics = F_OPTICS if f_optics is None else f_optics
     w_nucl = np.where(d["is_neutron"] > 0.5, c["w_n"], c["w_p"])
-    scale = (lumi / LUMI_REF) * (m_fid_t / M_REF_T) * f_flux
+    scale = (lumi / LUMI_REF) * (m_fid_t / M_REF_T) * f_flux * f_optics
     return d["w_raw"] * w_nucl * scale
 
 
@@ -181,10 +224,10 @@ def charge_confusion(p, *_a, **_kw):
 
 
 # ------------------------------------------------------- tungsten scenarios
-def yield_per_tonne(d, material, lumi=LUMI_RUN4, f_flux=F_FLUX):
+def yield_per_tonne(d, material, lumi=LUMI_RUN4, f_flux=F_FLUX, f_optics=None):
     """Per-event weights for 1 tonne of `material` at `lumi`."""
     return event_weight(d, material=material, lumi=lumi, m_fid_t=1.0,
-                        f_flux=f_flux)
+                        f_flux=f_flux, f_optics=f_optics)
 
 
 def calibrate_cone(d, geo_base, params=None, rng=None):
@@ -227,7 +270,8 @@ def smeared_theta(d, geo, rng):
 
 
 def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
-                   rng=None, f_flux=F_FLUX):
+                   rng=None, f_flux=F_FLUX, include_ahcal=False,
+                   f_optics=None):
     """
     Full chain for a sampling geometry with `t_w_cm` tungsten per layer.
 
@@ -242,8 +286,17 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     geo = G.cdr_config(t_w_cm)
 
     # ---- yields per material, correct composition each ----
-    w = (yield_per_tonne(d, "scintillator_CH", lumi, f_flux) * geo["m_sc"]
-         + yield_per_tonne(d, "tungsten", lumi, f_flux) * geo["m_w"])
+    w = (yield_per_tonne(d, "scintillator_CH", lumi, f_flux, f_optics) * geo["m_sc"]
+         + yield_per_tonne(d, "tungsten", lumi, f_flux, f_optics) * geo["m_w"])
+    # Optionally add the AHCAL as a second target volume.  It is a sampling
+    # calorimeter, so interactions in the steel absorber are measured too and
+    # the whole mass counts -- ~98% of it iron.  Its coarse 4x4 cm^2 granularity
+    # makes vertex finding and muon linking harder, which enters as a lower
+    # identification+linking efficiency, not modelled here (see the eff scan).
+    if include_ahcal:
+        a = G.ahcal_config()
+        w = w + (yield_per_tonne(d, "iron", lumi, f_flux, f_optics) * a["m_fe"]
+                 + yield_per_tonne(d, "scintillator_CH", lumi, f_flux, f_optics) * a["m_sc"])
 
     n_dis = w.sum()
     is_charm = d["n_charm"] >= 1
@@ -274,7 +327,7 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     # representative MCS width at the median decay-muon momentum
     med_p = float(np.median(mu_p[has_mu & (mu_p > 0)]))
     return dict(
-        geo=geo, t_w_cm=t_w_cm, f_flux=f_flux,
+        geo=geo, t_w_cm=t_w_cm, f_flux=f_flux, include_ahcal=include_ahcal,
         n_dis=n_dis, n_charm=n_charm, n_semi=n_semi,
         n_punch=n_punch, n_acc=n_acc, n_tag=n_tag,
         f_charm=n_charm / n_dis if n_dis else 0.0,

@@ -13,27 +13,52 @@ assumptions with designed values — and corrected several of them substantially
 ## 1. Headline numbers
 
 Run 4 at **780 fb⁻¹** (FASERCal's own nominal), **3DCAL only** (AHCAL excluded),
-as-designed geometry, **1 mm W baseline**, fiducial z < 1150 mm, measured
-off-axis flux (F_flux = 0.96), identification+linking efficiency ε = 0.9:
+as-designed geometry, **1 mm W baseline**, fiducial z < 1150 mm,
+F_flux = 0.96 (measured), **F_optics = 2.0** (Run 4 beam optics, see below),
+identification+linking efficiency ε = 0.9:
 
-| stage | events | fraction |
-|---|---:|---|
-| Muon DIS in 3DCAL fiducial | **187 034** | 100 % |
-| … containing charm | 5 285 | 2.83 % |
-| … charm → semileptonic µ | 928 | 17.6 % of charm |
-| … µ punches out | 764 | 82.4 % |
-| … reaches spectrometer (43 %) | 329 | 43 % |
-| … identified + linked (ε = 0.9) | **296** | **0.158 % of DIS** |
+| stage | 3DCAL only | + AHCAL | fraction |
+|---|---:|---:|---|
+| Muon DIS in fiducial volume | **373 655** | **2 504 165** | 100 % |
+| … containing charm | 10 580 | 71 546 | 2.83 % |
+| … charm → semileptonic µ | 1 856 | 12 551 | 17.6 % of charm |
+| … µ punches out | 1 529 | 10 341 | 82.4 % |
+| … reaches spectrometer (43 %) | 657 | 4 447 | 43 % |
+| … identified + linked (ε = 0.9) | **590** | **3 992** | **0.158 % of DIS** |
+| **σ(A_c)** | **0.041** | **0.016** | |
 
-Charge-tag purity **99.2 %** (CDR-measured misidentification, §2.6.2).
+Charge-tag purity **99.2 %** (CDR §2.6.2 measured misidentification).
 
-| absorber | full mass | fiducial mass | tagged | σ(A_c) |
-|---|---:|---:|---:|---:|
-| **1 mm W/module** (baseline) | 581 kg | **277 kg** | **296** | **0.058** |
-| 5 mm W/module | 896 kg | 421 kg | 445 | 0.047 |
-| 10 mm W/module | 1118 kg | 514 kg | 546 | 0.043 |
+**Two new multiplicative conditions**, both documented in the report's conditions page:
 
-The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
+- **F_optics = 2.0** — the muon flux does *not* simply scale with luminosity.
+  CDR §1.3.2: the 2024 optics change (crossing angle reversed, Q4 off, looser
+  collimators) *"increas[es] the rate by a factor of 2 and increas[es] the energy
+  of the muons… a large increase in high-momentum, positively charged muons"*,
+  and Run 4 goes to a 250 µrad horizontal crossing angle with mitigation *"not
+  clear"*. The FLUKA sample behind both the flux grid and the off-axis map is
+  the **Run 3** production, so this is not already in the weights. Two reasons it
+  is likely **conservative**: it is quoted for the 2024 configuration, not Run 4;
+  and the spectrum also *hardens*, while DIS and charm both rise with E_µ.
+  Set `F_OPTICS = 1.0` to recover pure luminosity scaling.
+
+- **AHCAL as an optional second target** — 3.33 t total (~98 % iron), 1.60 t
+  fiducial, i.e. **5.8× the 3DCAL fiducial mass**, giving 6.7× the DIS rate.
+  Being a sampling calorimeter, interactions in the steel *are* measured, so the
+  whole mass counts; the iron composition (w_p = 0.464) is applied. **Caveat:**
+  its 4×4 cm² granularity makes vertex finding and muon linking much harder than
+  1 cm³ voxels, so the AHCAL curve should be read at a **lower ε** than the
+  3DCAL one — the report plots both against ε precisely so they are not compared
+  at the same value.
+
+| absorber | 3DCAL fiducial | σ(A_c) 3DCAL | σ(A_c) +AHCAL |
+|---|---:|---:|---:|
+| **1 mm W** (baseline) | 277 kg | 0.041 | **0.016** |
+| 5 mm W | 421 kg | 0.034 | 0.015 |
+| 10 mm W | 514 kg | 0.030 | 0.015 |
+
+With the AHCAL included the absorber choice becomes almost irrelevant — the
+AHCAL mass dominates.
 
 ---
 
@@ -93,6 +118,8 @@ The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
 | 11 | mass computed from first principles (514 kg) | **CDR Table 5: 581 kg** | ×1.13 — my calc omitted Al enclosures, WLS fibres, glue, Tyvek |
 | 12 | no fiducial cut | **z < 1150 mm (CDR Table 8)** | **×0.48** — the dominant new effect |
 | 13 | toy charge-confusion sigmoid | **CDR §2.6.2 measured**: 0.7 % below 100 GeV | purity 97.3 % → **99.2 %** — the real spectrometer is *better* than my toy |
+| 14 | flux scaled by luminosity alone | **× F_optics = 2.0** (CDR §1.3.2) | yields **×2** |
+| 15 | 3DCAL only | **+ AHCAL option** (1.60 t fiducial, ~98 % Fe) | DIS rate **×6.7**, σ(A_c) 0.041 → **0.016** |
 
 ---
 
@@ -106,7 +133,7 @@ The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
 - [ ] Detector reconstruction — all kinematics still truth-level
 
 **Open questions**
-- [ ] **Run 4 muon flux may be ~2× higher than luminosity scaling implies.** CDR §1.3.2: the 2024 optics change (crossing angle reversed, Q4 off, looser collimators) already "increas[es] the rate by a factor of 2 and increas[es] the energy of the muons… a large increase in high-momentum, positively charged muons", and Run 4 goes to a 250 µrad horizontal crossing angle with mitigation "not clear". My flux is the Run 3 FLUKA sample scaled by luminosity only, so **yields may be a factor ~2 low**.
+- [x] ~~Run 4 muon flux ~2× above luminosity scaling~~ — **applied** as `F_OPTICS = 2.0`. Residual: the *spectral* hardening is still not modelled (needs a Run 4 FLUKA sample), and it would push yields further up.
 - [ ] **Sign convention of X** between the FASERCal CAD and the FLUKA ntuple — worth a **factor 2** in every yield
 - [ ] Residual **~1.7×** normalisation gap vs the paper's Table 2.1, after the reference-mass fix. Not the flux variant. Unexplained.
 - [x] ~~The talk quotes 4.8 λ for the 3DCAL, my model gave 3.0~~ — **resolved**: the quoted figure is the nuclear **collision** length λ_T, mine was the **interaction** length λ_I. With λ_T the 5 mm option gives 5.00 vs the quoted 4.8 (and X₀ 19.1 vs 18.3). A definition mismatch, not missing material.
