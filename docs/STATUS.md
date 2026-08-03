@@ -104,7 +104,7 @@ Charge-tag purity **97.3 %**. Reach, by absorber option and off-axis flux:
 - [ ] The 4.5° **tilt** is not yet applied to the acceptance/angle calculation
 
 **Toy values still standing in**
-- [ ] Punch-through threshold (2 GeV) and linking efficiency (90 %). The FASERCal ML charm tagger reaches only **15 % efficiency at 71 % purity** for c→µ in neutrino events (slide 24) — so 90 % is optimistic, though their topology is harder.
+- [ ] Punch-through threshold (2 GeV). The identification+linking efficiency is no longer assumed: the main result is now **plotted against it** across 0.05–1.0 (report page 20), so the answer can be read off once the real number is known.
 - [ ] Charge-confusion curve — should be replaced by the MDT/1.5 T GenFit result
 
 ---

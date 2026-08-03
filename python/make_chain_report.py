@@ -404,8 +404,60 @@ def page_tungsten_scan(pdf, d, cone):
     _emit(fig, pdf, "18_tungsten_scan")
 
 
-def page_offaxis(pdf, d, cone):
+def page_efficiency(pdf, d, cone):
+    """
+    The main result as a function of the identification + linking efficiency.
+
+    Everything downstream of the spectrometer acceptance is folded into one
+    number, eff_link: the probability that a decay muon which reached the
+    spectrometer is actually identified, momentum-reconstructed, charge-signed
+    and linked back to the DIS vertex.  It is the least constrained ingredient
+    of the chain, so rather than assume a value the result is shown across the
+    full range and can be read off once the real efficiency is known.
+
+    Scaling is simple and exact: N_tag is linear in eff, so sigma(A_c) goes as
+    1/sqrt(eff).  The point of the plot is the absolute numbers, not the shape.
+    """
     import geometry as G
+    eff = np.linspace(0.05, 1.0, 40)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.6))
+    palette = ["#4c72b0", "#dd8452", "#c44e52"]
+
+    for i, (nm, t) in enumerate(G.SCENARIOS.items()):
+        c = palette[i % 3]
+        lab = nm.replace("_", " ")
+        # F_flux = 1 (nominal) with a band up to 2 (the -X side of the LoS)
+        base1 = F.chain_scenario(d, t, cone=cone, f_flux=1.0,
+                                 params={"eff_link": 1.0})
+        base2 = F.chain_scenario(d, t, cone=cone, f_flux=2.0,
+                                 params={"eff_link": 1.0})
+        n1 = base1["n_tag"] * eff
+        n2 = base2["n_tag"] * eff
+        ax1.plot(eff, n1, "-", lw=2.3, color=c, label=lab)
+        ax1.fill_between(eff, n1, n2, color=c, alpha=0.16)
+        ax2.plot(eff, 1.0 / np.sqrt(n1), "-", lw=2.3, color=c, label=lab)
+        ax2.fill_between(eff, 1.0 / np.sqrt(n1), 1.0 / np.sqrt(n2),
+                         color=c, alpha=0.16)
+
+    for ax in (ax1, ax2):
+        ax.set_xlabel("identification + linking efficiency", fontsize=11.5)
+        ax.set_xlim(0.05, 1.0)
+        ax.grid(alpha=0.3, which="both")
+        ax.legend(fontsize=9.5, title="shaded: $F_{\\rm flux}$ 1 $\\to$ 2",
+                  title_fontsize=8.5)
+    ax1.set_ylabel("charge-signed, linked charm muons", fontsize=11.5)
+    ax1.set_title("Tagged yield is LINEAR in the efficiency", fontsize=11.5)
+    ax2.set_ylabel(r"$\sigma(A_c)$", fontsize=12)
+    ax2.set_yscale("log")
+    ax2.set_title(r"Statistical reach: $\sigma(A_c)\propto 1/\sqrt{\varepsilon}$",
+                  fontsize=11.5)
+
+    fig.suptitle("Main result vs the identification + linking efficiency "
+                 f"(Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$, 3DCAL only)", fontsize=12.5)
+    _emit(fig, pdf, "20_efficiency_scan")
+
+
+def page_offaxis(pdf, d, cone):
     """
     Off-axis flux: the single largest unquantified factor.
 
@@ -469,6 +521,7 @@ def main():
         cone = F.calibrate_cone(d, G.configure(0.0))
         page_tungsten_scenarios(pdf, d, cone)
         page_tungsten_scan(pdf, d, cone)
+        page_efficiency(pdf, d, cone)
         page_offaxis(pdf, d, cone)
         if os.path.exists(args.npz_pc):
             page_ic(pdf, d, load(args.npz_pc))
