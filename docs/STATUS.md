@@ -115,6 +115,45 @@ the x-reconstruction study the decisive question.
 
 ---
 
+## 2c. The σ_p inputs are now known — and they threaten lepton-only x reconstruction
+
+The CDR (§2.6.2) gives the measured momentum resolution of the FASERCal muon
+spectrometer, from a full Geant4 + GenFit fit. Applied to the muon momenta in
+our own sample:
+
+| muon | median p | **σ_p/p** |
+|---|---:|---:|
+| incoming | 665 GeV | **54.5 %** |
+| scattered (DIS) | 469 GeV | **47.0 %** |
+| charm decay | 11 GeV | 20.0 % |
+
+(yield-weighted average over the scattered-muon spectrum: **46.8 %**)
+
+Compare with arXiv:2506.13889 §4, the showstopper question:
+**σ_p = 10 % already drops the x ≥ 0.2 excess from ×8 to ~×2, and σ_p = 30 %
+removes it entirely.** FASERCal's spectrometer is at ~47 %, i.e. well inside the
+regime where the paper says the large-x signal is gone.
+
+This is *inherent*, not a flaw: the spectrometer is iron-core (10 planes × 15 cm
+Fe ≈ 85 X₀), so it is multiple-scattering dominated — 20 % even at 20 GeV. It is
+built for muon identification and **charge**, which it does excellently (0.7 %
+misidentification), not for precision momentum on TeV muons.
+
+**But this is exactly the argument for the calorimetric methods.** The Bern talk
+quotes the *hadronic* resolution as **~9 %** (p_jet, NC), five times better than
+the muon momentum. Jacquet–Blondel reconstructs x from the hadronic system alone
+(ν_JB = E_had, Q²_JB from hadronic p_T) and **needs no muon momentum at all**.
+So the honest hypothesis is:
+
+> FASERcal may reconstruct large-x *better* than FASERν despite worse angular
+> resolution, because it has an energy measurement emulsion cannot provide —
+> turning the showstopper into the differentiator.
+
+**Status: not yet tested.** This is the top open item (§5), and it needs no
+re-showering: `e_in`, `E_had`, the hadronic vector and Σ(E−p_z) are all cached.
+
+---
+
 ## 3. Key physics findings
 
 1. **The chain is branching-limited, not detector-limited.** 2.83 % × 17.6 % ≈ 200× attrition before any detector effect.
@@ -153,7 +192,7 @@ the x-reconstruction study the decisive question.
 ## 5. What is MISSING / open
 
 **Physics not yet simulated**
-- [ ] x-reconstruction comparison (lepton-only vs Jacquet–Blondel vs Σ vs double-angle) and the truth-x → reco-x migration matrix vs arXiv:2506.13889 §4
+- [ ] **[TOP PRIORITY]** x-reconstruction comparison (lepton-only vs Jacquet–Blondel vs Σ vs double-angle) and the truth-x → reco-x migration matrix vs arXiv:2506.13889 §4, at the CDR's real σ_p (47 %, not the paper's 10/30 %) and σ_E_had (~9 %). See §2c — this is the answer to the showstopper question.
 - [ ] Intrinsic charm **differentially in x** (inclusive ratio is only 1.08 and washes out)
 - [ ] Backgrounds: π/K decay-in-flight muons faking the soft second muon — **not simulated**
 - [ ] Pile-up / linking with the ~1 Hz/cm² background muon flux
