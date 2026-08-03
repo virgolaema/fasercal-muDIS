@@ -100,7 +100,7 @@ Charge-tag purity **97.3 %**. Reach, by absorber option and off-axis flux:
 **Open questions**
 - [ ] **Sign convention of X** between the FASERCal CAD and the FLUKA ntuple — worth a **factor 2** in every yield
 - [ ] Residual **~1.7×** normalisation gap vs the paper's Table 2.1, after the reference-mass fix. Not the flux variant. Unexplained.
-- [ ] The talk quotes 4.8 λ_int for the 3DCAL; my material model gives 3.0 for the 5 mm option (X0 matches: 19.1 vs 18.3). Probably mechanics/frames not modelled — worth confirming.
+- [x] ~~The talk quotes 4.8 λ for the 3DCAL, my model gave 3.0~~ — **resolved**: the quoted figure is the nuclear **collision** length λ_T, mine was the **interaction** length λ_I. With λ_T the 5 mm option gives 5.00 vs the quoted 4.8 (and X₀ 19.1 vs 18.3). A definition mismatch, not missing material.
 - [ ] The 4.5° **tilt** is not yet applied to the acceptance/angle calculation
 
 **Toy values still standing in**
