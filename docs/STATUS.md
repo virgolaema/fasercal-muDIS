@@ -90,6 +90,31 @@ AHCAL mass dominates.
 
 ---
 
+## 2b. DECISIVE: there is no c/c̄ asymmetry in the PDF
+
+See [`docs/CHARM_ASYMMETRY.md`](CHARM_ASYMMETRY.md). Both NNPDF4.0 sets fit the
+total c + c̄ and set c − c̄ = 0: the max |c−c̄|/(c+c̄) over the whole grid is
+6.4×10⁻³ and the number sum rule gives −1.5×10⁻⁴. **`production_v1` therefore
+cannot produce a parton-level A_c — it is zero by construction**, consistent
+with the light-cone argument that the minimal |uudcc̄⟩ Fock state gives
+A_c(x) = 0 at every x.
+
+What the MC *does* produce is a **fragmentation** asymmetry, via the
+leading-baryon effect: Λ_c outnumbers Λ̄_c by **6.8 : 1** (the c picks up two
+valence quarks from the target remnant; the c̄ cannot make an anti-baryon), and
+Λ_c has the lowest semileptonic BR of any charm hadron (4.8 %). So the c is
+preferentially hidden from the muon tag → the tagged sample is c̄-enriched,
+A = −0.061 ± 0.036.
+
+**Consequences:** (i) A_c is not measurable as an IC observable with current PDF
+inputs — it needs an asymmetric-charm set or a model; (ii) the fragmentation
+asymmetry is *the same size as our sensitivity*, so it is a competing background,
+not a small correction; (iii) **the real IC signal is the large-x enhancement**
+(fitted/perturbative = 5.7× at x = 0.4, 10.9× at 0.5, 44× at 0.7), which makes
+the x-reconstruction study the decisive question.
+
+---
+
 ## 3. Key physics findings
 
 1. **The chain is branching-limited, not detector-limited.** 2.83 % × 17.6 % ≈ 200× attrition before any detector effect.
@@ -107,6 +132,8 @@ AHCAL mass dominates.
 |---|---|---|---|
 | 1 | charge confusion from a single MC draw | analytic per-muon expectation | removed noise letting \|A_meas\|>\|A_true\| |
 | 2 | A_c ≈ −0.16 (243 muons) | **+0.002 ± 0.020** at 10× stats | the −0.16 was a fluctuation |
+| 16 | A_c treated as an IC observable | **zero by construction** in NNPDF4.0 | the study's original premise does not hold |
+| 17 | error 1/√N_raw on the tagged asymmetry | **1/√N_eff**, N_eff = 778 not 12 019 | −0.061 is 1.7σ, not 6.7σ |
 | 3 | "40 % ≡ θ < 17 mrad" (unweighted) | **8.7 mrad** (yield-weighted) | ~2× tighter aperture |
 | 4 | reference mass 1.0 t | **0.724 t** (flux bakes in the W target) | yields ×1.38 |
 | 5 | "off-axis is an upper bound" | flux **rises** off-axis | reversed |
