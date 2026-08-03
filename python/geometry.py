@@ -1,92 +1,93 @@
 """
-FASERcal geometry / material model for the tungsten-absorber scenarios.
+FASERCal 3DCAL geometry / material model — AS DESIGNED.
 
-Scenario: FASERcal is a sampling structure of N layers, each
-    [ d_scint cm plastic scintillator | t_W cm tungsten absorber ]
-inside a FIXED detector envelope of length L (the trench space constraint,
-Run 4 TP Sec. 3.1).  Adding tungsten therefore DISPLACES scintillator rather
-than extending the detector -- this is the physically constrained comparison.
-The alternative (fixed scintillator, detector grows) is reported as a variant.
+Source: "FASERCal", FASER Collaboration Meeting, Bern, 15 July 2026
+(FASERCal_simulation_BernFaserCM_15July2026.pdf), slides 4, 11, 12, 39.
 
-Three competing effects as t_W increases:
+    3DCAL: 10 modules, each with 20 layers of 1 cm^3 scintillating cubes and
+           1 mm OR 5 mm of tungsten PER MODULE (slide 39 is explicit: "1mm per
+           module, i.e. every 20 scintillator layers").
+           Module face 480 x 480 mm (slide 11).
+           Quoted totals: 18.3 X0, 4.8 lambda_int.
+    Position: detector placed parallel to the tunnel wall, tilted 4.5 degrees,
+           shifted from the LoS by 452 mm in X and 236 mm in Y (slides 11, 12, 31).
 
-  (+) TARGET MASS.  Tungsten is ~19x denser, so even thin plates dominate the
-      nucleon count -> many more muon-DIS interactions.
-  (-) MULTIPLE SCATTERING.  X0(W) = 3.5 mm, so the charm-decay muon is angularly
-      smeared on its way out.  Since acceptance into the spectrometer is an
-      ANGULAR problem (see TECHNOTE_chain.md Sec. 9), this directly eats the
-      signal.
-  (-) ENERGY LOSS.  ~22 MeV/cm in W raises the punch-through threshold.
+>>> CORRECTION vs the previous version of this module <<<
+An earlier version put the tungsten between EVERY 1 cm scintillator layer, which
+over-estimated the tungsten by a factor 10 (and the total 3DCAL mass by 5-10x).
+The absorber is per MODULE, i.e. every 20 layers.  Correct totals:
 
-There is therefore an optimum absorber thickness, which this module lets the
-analysis find rather than assume.
+    1 mm W/module : 1.0 cm W total -> 0.470 t scint + 0.044 t W = 0.514 t
+    5 mm W/module : 5.0 cm W total -> 0.470 t scint + 0.222 t W = 0.692 t
+
+The computed X0 for the 5 mm option (19.1) reproduces the quoted 18.3; the
+computed lambda_int (3.0) is below the quoted 4.8, presumably because the talk's
+figure includes mechanics/frames not modelled here.  Flagged, not fudged.
 
 Material constants (PDG):
-  tungsten      X0 = 3.504 g/cm^2 -> 0.350 cm ; dE/dx ~ 22.1 MeV/cm ; lambda_I 9.95 cm
-  polystyrene   X0 = 43.79 g/cm^2 -> 41.3 cm  ; dE/dx ~ 1.97 MeV/cm ; lambda_I 80 cm
+  tungsten      X0 = 0.350 cm ; dE/dx ~ 22.1 MeV/cm ; lambda_I  9.95 cm
+  polystyrene   X0 = 41.3 cm  ; dE/dx ~  1.97 MeV/cm ; lambda_I 80.0 cm
 """
 import numpy as np
 
-RHO_W,     X0_W,     DEDX_W,     LAMBDA_W = 19.30, 0.3504, 22.1, 9.95
-RHO_SC,    X0_SC,    DEDX_SC,    LAMBDA_SC = 1.02, 41.3,   1.97, 80.0
+RHO_W,  X0_W,  DEDX_W,  LAMBDA_W = 19.30, 0.3504, 22.1, 9.95
+RHO_SC, X0_SC, DEDX_SC, LAMBDA_SC = 1.02, 41.3, 1.97, 80.0
 
-# Detector envelope.  TP Sec. 6.2 (3DCAL) is an empty placeholder, so this is an
-# explicit assumption chosen so the pure-scintillator case gives ~1 t, matching
-# the TP benchmark target mass and the baseline of TECHNOTE_chain.md.
-AREA_CM2   = 1.0e4    # 1 m^2 transverse
-LENGTH_CM  = 100.0    # 1 m longitudinal envelope
-D_SCINT_CM = 1.0      # scintillator thickness per layer
+# ---- 3DCAL as designed -----------------------------------------------------
+FACE_CM = 48.0            # 480 mm module face
+N_MODULES = 10
+LAYERS_PER_MODULE = 20
+CUBE_CM = 1.0             # 1 cm^3 scintillating cubes
+
+# Position of the detector relative to the nominal line of sight (mm)
+LOS_SHIFT_X_MM = 452.0
+LOS_SHIFT_Y_MM = 236.0
+TILT_DEG = 4.5
+
+AREA_CM2 = FACE_CM ** 2                                   # 2304 cm^2
+LEN_SCINT_CM = N_MODULES * LAYERS_PER_MODULE * CUBE_CM    # 200 cm
 
 
-def configure(t_w_cm, area_cm2=AREA_CM2, length_cm=LENGTH_CM,
-              d_scint_cm=D_SCINT_CM, fixed_envelope=True):
+def configure(t_w_cm, area_cm2=AREA_CM2, n_modules=N_MODULES,
+              layers_per_module=LAYERS_PER_MODULE, cube_cm=CUBE_CM):
     """
-    Return the material budget for an absorber thickness t_w_cm per layer.
+    Material budget for `t_w_cm` of tungsten PER MODULE (not per layer).
 
-    fixed_envelope=True : total length is fixed, tungsten displaces scintillator
-    fixed_envelope=False: scintillator is fixed, the detector grows
+    t_w_cm = 0.1 -> the 1 mm option ; 0.5 -> the 5 mm option ; 0.0 -> no absorber.
     """
-    pitch = d_scint_cm + t_w_cm
-    if fixed_envelope:
-        n_layers = length_cm / pitch
-        len_sc = n_layers * d_scint_cm
-        len_w = n_layers * t_w_cm
-        total_len = length_cm
-    else:
-        n_layers = length_cm / d_scint_cm
-        len_sc = length_cm
-        len_w = n_layers * t_w_cm
-        total_len = len_sc + len_w
+    len_sc = n_modules * layers_per_module * cube_cm
+    len_w = n_modules * t_w_cm
 
     m_sc = area_cm2 * len_sc * RHO_SC / 1.0e6      # tonnes
     m_w = area_cm2 * len_w * RHO_W / 1.0e6
 
-    # A muon produced uniformly along the detector traverses, on average, half
-    # of the remaining material.
+    # a muon produced uniformly along the detector traverses, on average, half
+    # of the remaining material
     x0_mean = 0.5 * (len_w / X0_W + len_sc / X0_SC)
     dedx_mean_mev = 0.5 * (len_w * DEDX_W + len_sc * DEDX_SC)
     lam_total = len_w / LAMBDA_W + len_sc / LAMBDA_SC
+    x0_total = len_w / X0_W + len_sc / X0_SC
 
     return dict(
-        t_w_cm=t_w_cm, n_layers=n_layers, total_len_cm=total_len,
-        len_sc=len_sc, len_w=len_w, m_sc=m_sc, m_w=m_w, m_tot=m_sc + m_w,
-        x0_mean=x0_mean, dedx_mean_mev=dedx_mean_mev, lambda_int=lam_total,
+        t_w_cm=t_w_cm, n_layers=n_modules * layers_per_module,
+        total_len_cm=len_sc + len_w, len_sc=len_sc, len_w=len_w,
+        m_sc=m_sc, m_w=m_w, m_tot=m_sc + m_w,
+        x0_mean=x0_mean, x0_total=x0_total,
+        dedx_mean_mev=dedx_mean_mev, lambda_int=lam_total,
     )
 
 
 def theta_ms(p_gev, x0):
-    """
-    Highland multiple-scattering RMS plane angle [rad] for momentum p after x0
-    radiation lengths.  Returned as the space angle (sqrt(2) x plane angle).
-    """
+    """Highland multiple-scattering RMS space angle [rad] after x0 rad. lengths."""
     p_mev = np.asarray(p_gev, dtype=float) * 1.0e3
     x0 = max(float(x0), 1e-9)
     plane = (13.6 / np.maximum(p_mev, 1e-9)) * np.sqrt(x0) * (1 + 0.038 * np.log(x0))
     return np.sqrt(2.0) * np.maximum(plane, 0.0)
 
 
+# The two absorber options actually under consideration, plus a no-W reference.
 SCENARIOS = {
-    "baseline_no_W": 0.0,
-    "W_1mm":         0.1,
-    "W_5mm":         0.5,
+    "no_W_reference": 0.0,
+    "W_1mm_module":   0.1,
+    "W_5mm_module":   0.5,
 }

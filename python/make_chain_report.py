@@ -59,7 +59,7 @@ def page_cutflow(pdf, d, m):
     ]
     tab = ax.table(cellText=rows,
                    colLabels=[f"FASERcal chain — Run 4, {F.LUMI_RUN4:.0f} fb$^{{-1}}$, "
-                              f"{F.M_FID_T:.1f} t scintillator",
+                              f"{F.M_FID_T:.3f} t 3DCAL",
                               "yield", "fraction"],
                    colWidths=[0.58, 0.21, 0.21], loc="center", cellLoc="left")
     tab.auto_set_font_size(False); tab.set_fontsize(10.5); tab.scale(1, 1.75)
@@ -67,10 +67,12 @@ def page_cutflow(pdf, d, m):
         tab[0, j].set_facecolor("#1f3b57")
         tab[0, j].set_text_props(color="white", fontweight="bold")
     fig.text(0.5, 0.09,
-             "Absolute yields scale LINEARLY with the assumed 1 t fiducial mass and with the "
-             "off-axis flux factor (here on-axis-equivalent).\nOff-axis is NOT necessarily a "
-             "penalty: FLUKA reports the muon rate rising in some directions — see the off-axis "
-             "page.\nThe chain fractions are ratios and are robust against both.",
+             "3DCAL geometry and mass are now the DESIGNED values (Bern CM talk, 15 Jul 2026): "
+             "10 modules x 20 layers of 1 cm cubes, 48x48 cm face, W per module.\n"
+             "Yields scale linearly with the off-axis flux factor; at the designed LoS shift "
+             "(452, 236) mm the FLUKA map gives F_flux = 1.0-2.0 depending on the sign\n"
+             "convention of X, which is not yet resolved. The chain fractions are ratios and "
+             "are robust against both.",
              ha="center", fontsize=9, style="italic")
     ax.set_title("Muon-DIS charm chain in FASERcal (AHCAL excluded)", fontsize=13, pad=16)
     _emit(fig, pdf, "10_chain_cutflow", tight=False)
@@ -253,8 +255,8 @@ def page_tungsten_scenarios(pdf, d, cone):
     axb.tick_params(axis="y", colors="#c44e52")
     ax2.set_title(r"Yield tracks mass; $\sigma(A_c)$ improves as $1/\sqrt{N}$",
                   fontsize=11.5)
-    fig.suptitle("Tungsten absorber scenarios — fixed 1 m envelope, "
-                 "W displaces scintillator", fontsize=12.5)
+    fig.suptitle("Tungsten absorber options as designed — 10 modules x 20 layers, "
+                 "W per module", fontsize=12.5)
     _emit(fig, pdf, "16_tungsten_scenarios")
 
     # ---- companion table page ----
@@ -292,7 +294,7 @@ def page_tungsten_scenarios(pdf, d, cone):
 def page_tungsten_scan(pdf, d, cone):
     """Is there an optimum absorber thickness?"""
     import geometry as G
-    tw = np.concatenate([[0.0], np.logspace(np.log10(0.02), np.log10(3.0), 26)])
+    tw = np.concatenate([[0.0], np.logspace(np.log10(0.02), np.log10(2.0), 26)])
     res = [F.chain_scenario(d, float(t), cone=cone) for t in tw]
     tag = np.array([r["n_tag"] for r in res])
     facc = np.array([100 * r["f_acc"] for r in res])
@@ -303,13 +305,13 @@ def page_tungsten_scan(pdf, d, cone):
     for nm, t in G.SCENARIOS.items():
         m = F.chain_scenario(d, t, cone=cone)
         ax1.plot(t * 10, m["n_tag"], "o", ms=10, label=nm.replace("_", " "))
-    ax1.set_xlabel("tungsten per layer [mm]", fontsize=11)
+    ax1.set_xlabel("tungsten per module [mm]", fontsize=11)
     ax1.set_ylabel("tagged charm muons (Run 4)", fontsize=11)
     ax1.legend(fontsize=9); ax1.grid(alpha=0.3)
     ax1.set_title("Yield rises monotonically with absorber thickness", fontsize=11.5)
 
     ax2.plot(tw * 10, facc, "-", color="#c44e52", lw=2.2, label="acceptance [%]")
-    ax2.set_xlabel("tungsten per layer [mm]", fontsize=11)
+    ax2.set_xlabel("tungsten per module [mm]", fontsize=11)
     ax2.set_ylabel("spectrometer acceptance [%]", color="#c44e52", fontsize=11)
     ax2.tick_params(axis="y", colors="#c44e52")
     ax2.set_ylim(0, 50); ax2.grid(alpha=0.3)
@@ -318,12 +320,13 @@ def page_tungsten_scan(pdf, d, cone):
     axb.set_ylabel("total mass [t]", color="#4c72b0", fontsize=11)
     axb.tick_params(axis="y", colors="#4c72b0")
     ax2.set_title("The trade-off: mass gain (blue) vs\nacceptance loss (red)", fontsize=11.5)
-    fig.suptitle("Absorber-thickness optimisation — no yield optimum below 3 cm; "
-                 "the limit is calorimetric, not statistical", fontsize=12.5)
+    fig.suptitle("Absorber thickness per MODULE (every 20 layers, as designed) — "
+                 "yield rises monotonically; the limit is calorimetric", fontsize=12.5)
     _emit(fig, pdf, "18_tungsten_scan")
 
 
 def page_offaxis(pdf, d, cone):
+    import geometry as G
     """
     Off-axis flux: the single largest unquantified factor.
 
@@ -337,7 +340,8 @@ def page_offaxis(pdf, d, cone):
     import geometry as G
     ff = np.logspace(np.log10(0.2), np.log10(12.0), 40)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.4))
-    cols = {"baseline_no_W": "#4c72b0", "W_1mm": "#dd8452", "W_5mm": "#c44e52"}
+    palette = ["#4c72b0", "#dd8452", "#c44e52"]
+    cols = {nm: palette[i % 3] for i, nm in enumerate(G.SCENARIOS)}
     for nm, t in G.SCENARIOS.items():
         tag = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["n_tag"] for f in ff]
         sig = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["sigma_A"] for f in ff]

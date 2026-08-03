@@ -45,8 +45,11 @@ import numpy as np
 
 # ---------------------------------------------------------------- luminosity
 LUMI_REF   = 250.0     # fb^-1, the normalisation baked into the weights (Run 3)
-LUMI_RUN4  = 680.0     # fb^-1, nominal Run 4 (FASER Run 4 TP, Fig. 1 / Sec. 2.1)
-LUMI_RUN4_ALT = 780.0  # TP margin note "[FK: update to 780]" -- reported as a variant
+# 780 fb^-1 is what the FASERCal team itself quotes for Run 4 nominal
+# (Bern CM talk, 15 July 2026, slides 5/9/14/23/24), and matches the TP margin
+# note "[FK: update to 780]".  Switched from the TP's printed 680.
+LUMI_RUN4  = 780.0     # fb^-1, Run 4 nominal as used by FASERCal
+LUMI_RUN4_TP = 680.0   # the value printed in the Run 4 TP v0.01
 
 # ------------------------------------------------------------ target material
 # Per-nucleon samples are recombined with the proton fraction of the target.
@@ -59,11 +62,13 @@ COMPOSITION = {
 }
 
 # ------------------------------------------------------------------- geometry
-# NOMINAL fiducial mass.  Sec. 6.2 (3DCAL) of the Run 4 TP is an empty
-# placeholder, so this is an explicit assumption, chosen equal to the TP
-# benchmark target mass (1 t) so the numbers are directly comparable.
-# EVERY absolute yield scales linearly with this number.
-M_FID_T = 1.0      # tonne, FASERcal 3DCAL fiducial volume (AHCAL excluded)
+# 3DCAL fiducial mass, now the DESIGNED value rather than an assumption
+# (FASERCal Bern CM talk, 15 July 2026, slides 4/11/39):
+#   10 modules x 20 layers of 1 cm^3 cubes, 48 x 48 cm face
+#   -> 0.470 t scintillator, plus 0.044 t (1 mm W/module) or 0.222 t (5 mm)
+# The 1 mm option is the baseline used in the FASERCal simulations and costing,
+# so it is taken as nominal here.  geometry.configure() computes both.
+M_FID_T = 0.514    # tonne, 3DCAL with 1 mm W per module (AHCAL excluded)
 
 # REFERENCE MASS implicit in the flux normalisation.  arXiv:2506.13889 Eq. (2.1)
 # defines the flux as f_mu(x_mu) = n_T L_T dN_mu/dx_mu, i.e. the TUNGSTEN TARGET
@@ -119,12 +124,20 @@ F_FLUX_RANGE = (1.0, 2.0, 3.9, 4.9)   # measured on-axis .. best off-axis
 DEFAULTS = dict(
     # a muon must punch through the remaining calorimeter to reach the magnet
     p_punch_gev=2.0,
-    # geometric+tracking acceptance of the spectrometer: USER-SUPPLIED 40%
-    acc_spectrometer=0.40,
+    # Spectrometer acceptance.  The FASERCal Bern talk (slide 33) reports, for
+    # 3DCAL interactions, leading muons crossing >=2 MuSpect stations 43%,
+    # >=3 stations 36%, 4 stations 31%.  The user-supplied 40% sits right in
+    # that range, so it is CONFIRMED rather than assumed; 0.43 is used as the
+    # >=2-station working point.
+    acc_spectrometer=0.43,
     # charge-confusion model eta(p) = eta0 + (0.5-eta0)*sigmoid((p-p_half)/w)
     eta0=0.005, p_half_gev=1000.0, p_width_gev=300.0,
-    # probability of correctly linking the spectrometer track back to the DIS
-    # vertex through the calorimeter (track-following through 3D voxels)
+    # Probability of correctly linking the spectrometer track back to the DIS
+    # vertex through the calorimeter.  REALITY CHECK: the FASERCal ML charm
+    # tagger (Bern talk slide 24) achieves, for the c->mu channel in neutrino
+    # events, tagging efficiency 0.15 at purity 0.71 -- far below this toy 0.90.
+    # Their number folds in the full ML chain on a harder (neutrino) topology,
+    # so it is not directly transferable, but it shows 0.90 is optimistic.
     eff_link=0.90,
 )
 
@@ -189,7 +202,7 @@ def smeared_theta(d, geo, rng):
 
 
 def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
-                   rng=None, fixed_envelope=True, f_flux=F_FLUX):
+                   rng=None, f_flux=F_FLUX):
     """
     Full chain for a sampling geometry with `t_w_cm` tungsten per layer.
 
@@ -201,7 +214,7 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     import geometry as G
     p = dict(DEFAULTS); p.update(params or {})
     rng = rng or np.random.default_rng(2024)
-    geo = G.configure(t_w_cm, fixed_envelope=fixed_envelope)
+    geo = G.configure(t_w_cm)
 
     # ---- yields per material, correct composition each ----
     w = (yield_per_tonne(d, "scintillator_CH", lumi, f_flux) * geo["m_sc"]
