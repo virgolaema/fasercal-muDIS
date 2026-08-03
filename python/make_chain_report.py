@@ -100,8 +100,9 @@ def page_conditions(pdf, d):
                      f"tilt {G.TILT_DEG:.1f}$\\degree$", "talk slides 11-12"),
         ("Target composition", "polystyrene CH, $w_p$=0.538 (+ W where present)", "computed per event"),
         ("Muon flux", "FASERnu Run 3 LHAPDF grid 'var2' (25x30 cm)", "arXiv:2506.13889 Eq. 2.1"),
-        ("Off-axis flux factor", "$F_{\\rm flux}$ = 1.0 (+X) or 2.0 ($-$X), FLUKA map",
-         "X sign UNRESOLVED"),
+        ("Off-axis flux factor", f"$F_{{\\rm flux}}$ = {F.F_FLUX:.2f} at (+452,+236) mm",
+         "FLUKA map, this work"),
+        ("Detector side", "left of LoS looking downstream = $+x$", "user; right-handed frame"),
         ("Spectrometer acceptance", f"{100*F.DEFAULTS['acc_spectrometer']:.0f}% "
                                     "($\\geq$2 MDT stations)", "talk slide 33"),
         ("Generator", "POWHEG + Pythia8, NNPDF4.0 fitted vs perturbative charm", "10 seeds, 764k events"),
@@ -148,10 +149,10 @@ def page_cutflow(pdf, d, m):
     fig.text(0.5, 0.09,
              "3DCAL geometry and mass are now the DESIGNED values (Bern CM talk, 15 Jul 2026): "
              "10 modules x 20 layers of 1 cm cubes, 48x48 cm face, W per module.\n"
-             "Yields scale linearly with the off-axis flux factor; at the designed LoS shift "
-             "(452, 236) mm the FLUKA map gives F_flux = 1.0-2.0 depending on the sign\n"
-             "convention of X, which is not yet resolved. The chain fractions are ratios and "
-             "are robust against both.",
+             "The detector sits LEFT of the LoS looking downstream, i.e. at (+452, +236) mm, where the "
+             "FLUKA map gives F_flux = 0.96 — the quieter lobe.\n"
+             "(The mirror position would have given 2.02, with a harder, mu+-enriched beam.) "
+             "Yields scale linearly with F_flux and with the efficiency; the chain fractions are ratios.",
              ha="center", fontsize=9, style="italic")
     ax.set_title("Muon-DIS charm chain in FASERcal (AHCAL excluded)", fontsize=13, pad=16)
     _emit(fig, pdf, "10_chain_cutflow", tight=False)
