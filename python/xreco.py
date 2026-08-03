@@ -78,10 +78,28 @@ RESOLUTIONS = dict(
 
 
 def sigma_p_over_p(p):
-    """CDR muon-momentum resolution, interpolated in log p."""
+    """
+    CDR muon-momentum resolution at momentum p [GeV].
+
+    The CDR quotes only four points (20, 100, 200, 1000 GeV); our median
+    scattered muon sits at 469 GeV, so the value there is INTERPOLATED and the
+    interpolation rule matters.
+
+    For a magnetic spectrometer the resolution has the form
+        sigma(1/p)/(1/p) = sqrt( a^2 + (b p)^2 )
+    a constant multiple-scattering floor in quadrature with a measurement term
+    linear in p.  A fit to the four quoted points gives a = 0.225, b = 5.9e-4,
+    confirming the form.  So sigma^2 is linear in p^2, and interpolating
+    sigma^2 against p^2 both passes exactly through every quoted point AND has
+    the physically correct shape in between.
+
+    An earlier version interpolated linearly in log p, which has no physical
+    basis and gave 47% at 469 GeV against 38% here -- i.e. it was ~25% too
+    PESSIMISTIC about the spectrometer.
+    """
     p = np.asarray(p, dtype=float)
-    return np.interp(np.log10(np.clip(p, 1.0, None)),
-                     np.log10(_P_NODES), _SIG_NODES)
+    p2 = np.clip(p, 1.0, None) ** 2
+    return np.sqrt(np.interp(p2, _P_NODES ** 2, _SIG_NODES ** 2))
 
 
 def truth(d):
