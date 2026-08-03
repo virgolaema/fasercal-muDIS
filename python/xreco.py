@@ -137,8 +137,24 @@ def smear(d, rng, res=None):
     def gauss(mu, rel):
         return mu * (1.0 + rng.normal(0.0, 1.0, size=n) * rel)
 
-    ein = np.maximum(gauss(d["e_in"], r["muon_scale"] * sigma_p_over_p(d["e_in"])), 1.0)
-    pout = np.maximum(gauss(d["p_out"], r["muon_scale"] * sigma_p_over_p(d["p_out"])), 0.5)
+    def smear_muon(p, rel):
+        """
+        Smear a muon momentum the way the spectrometer actually measures it.
+
+        The CDR quotes sigma(Delta(1/p)/(1/p)), i.e. the resolution is Gaussian
+        in the CURVATURE 1/p, not in p.  At these large resolutions the two are
+        not interchangeable: smearing p multiplicatively produces a symmetric
+        distribution, whereas smearing 1/p produces the correct long high-p tail
+        and can even flip the sign of the curvature (an unmeasurably straight
+        track), which is physically what happens.
+        """
+        inv = (1.0 / np.maximum(p, 1e-6)) * (1.0 + rng.normal(0.0, 1.0, size=n) * rel)
+        inv = np.where(np.abs(inv) < 1e-9, 1e-9, inv)     # guard the pole
+        out = 1.0 / np.abs(inv)
+        return np.clip(out, 0.5, 1.0e5)                   # cap runaway tails
+
+    ein = smear_muon(d["e_in"], r["muon_scale"] * sigma_p_over_p(d["e_in"]))
+    pout = smear_muon(d["p_out"], r["muon_scale"] * sigma_p_over_p(d["p_out"]))
     thmu = np.maximum(d["theta_mu"] + rng.normal(0.0, r["sigma_theta"], size=n), 1e-6)
 
     h = hadronic_truth(d)

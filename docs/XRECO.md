@@ -10,17 +10,17 @@ signal retained (efficiency × purity) is:
 
 | method | x ≥ 0.2 | vs lepton-only | if E_in **not** measured |
 |---|---:|---:|---|
-| lepton-only (what the paper uses) | 0.145 | — | **unavailable** |
-| Jacquet–Blondel | 0.268 | ×1.8 | 0.283 |
-| **Σ (fixed-target)** | **0.501** | **×3.5** | **0.501 — unchanged** |
-| double-angle | 0.572 | ×3.9 | **unavailable** |
+| lepton-only (what the paper uses) | 0.149 | — | **unavailable** |
+| Jacquet–Blondel | 0.288 | ×1.9 | 0.302 |
+| **Σ (fixed-target)** | **0.421** | **×2.8** | **0.421 — unchanged** |
+| double-angle | 0.491 | ×3.3 | **unavailable** |
 
 *Only x ≥ 0.2 is quoted. Above x = 0.4 the perturbative sample has **12 raw
 events**, so nothing there is statistically meaningful.*
 
 **Σ is the method to use.** Double-angle scores marginally higher at the nominal
-point but degrades steeply with the hadronic angular resolution (0.65 → 0.36
-between 0 and 50 mrad), whereas **Σ is flat at 0.501 across the whole range** —
+point but degrades steeply with the hadronic angular resolution, whereas **Σ is
+flat across the whole range** —
 it depends on E + p_z, which is first-order insensitive to θ_h. It is also the
 only method that does not require the incoming muon energy to be measured.
 
@@ -38,7 +38,28 @@ measured anywhere, then:
 
 So in that scenario **Σ is the only good method left**, and it loses nothing.
 
-Note JB gets *better* without a measured E_in (0.268 → 0.283): the
+### How to measure E_in in FASERcal: you already can
+
+FASERcal cannot measure the incoming muon momentum directly — there is no field
+upstream of the target, the muon does not stop so there is no range measurement,
+and at ~665 GeV multiple scattering is far too small to be used. The only two
+options are an upstream spectrometer, or **energy conservation using the final
+state**. The second is free:
+
+    E_in = E'_mu (spectrometer)  +  E_had (calorimeter)  -  M
+
+**This is numerically identical to the Σ method** (both give median 532 GeV, rel.
+error IQR 0.37) — at these small angles E + p_z ≈ 2E, so the two constructions
+coincide. And it works for a reason worth stating explicitly:
+
+    nu = E_in(reco) - E'(reco) = (E' + E_had - M) - E' = E_had - M
+
+**The 47 % spectrometer error appears in both terms and cancels exactly.** The
+resulting ν resolution is **13 %**, against **410 %** for lepton-only, where E_in
+and E′ are measured independently and their errors add instead of cancelling. It
+is an algebraic cancellation, not a tuned improvement — which is why Σ is robust.
+
+Note JB gets *better* without a measured E_in (0.288 → 0.302): the
 Σ-reconstructed E_in, coming from the 9 % calorimeter, is more accurate than the
 54 % spectrometer measurement. Even when E_in *is* measured, it is better to
 reconstruct it from the final state.
@@ -106,7 +127,7 @@ and omitting M biases x_JB low by M/ν — 9 % on the x ≥ 0.2 sample where ν 
 
 | quantity | value | source |
 |---|---|---|
-| muon momentum resolution | 20 % (20 GeV) → 63 % (1 TeV) | **CDR §2.6.2** |
+| muon momentum resolution | 20 % (20 GeV) → 63 % (1 TeV), applied as a Gaussian in **1/p** | **CDR §2.6.2** |
 | hadronic energy resolution | 9 % | **Bern talk** (p_jet, NC) |
 | muon angular resolution | 0.3 mrad | derived from 3DCAL geometry |
 | **hadronic angular resolution** | **20 mrad** | **ASSUMPTION — not from any document.** Scanned 0–100 mrad; the conclusion is stable because Σ is insensitive to it |
