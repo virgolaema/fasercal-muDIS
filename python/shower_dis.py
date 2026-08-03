@@ -100,6 +100,8 @@ def charm_ancestor(event, i):
 
 KEYS = ["w_raw", "is_neutron", "e_in", "p_out", "theta_mu", "q2",
         "e_had", "px_had", "py_had", "pz_had", "sigma_had",
+        "e_had_nr", "px_nr", "py_nr", "pz_nr",
+        "e_had_co", "px_co", "py_co", "pz_co",
         "n_charm", "n_semilep_mu", "mu2_q", "mu2_p", "mu2_theta",
         "charm_sign_mu"]
 
@@ -181,12 +183,24 @@ def shower_one(lhe, n_events, is_neutron):
                 if p.pAbs() > best_p:            # leading non-charm muon
                     best_p, scattered_idx = p.pAbs(), i
 
-        # ---- hadronic final state: everything except neutrinos and the
-        #      scattered muon.  The muon-beam remnant photon (status 62, id 22)
-        #      MUST be dropped: the flux is used as a beam PDF of a fictitious
-        #      7 TeV beam, so Pythia parks the unused balance in a ~5 TeV
-        #      photon that is not physical.
-        e_had = px = py = pz = sigma = 0.0
+        # ---- hadronic final state ----
+        # Three definitions are recorded, because the naive one is contaminated.
+        #   A "all"    : everything except neutrinos and the scattered muon,
+        #                minus the muon-beam remnant photon (status 62, id 22)
+        #                which is an artefact of using the flux as a beam PDF of
+        #                a fictitious 7 TeV beam.
+        #   B "norem"  : additionally drops ALL beam-remnant particles
+        #                (statusAbs 61-63).
+        #   C "cone"   : additionally drops very forward particles
+        #                (theta < THETA_FWD), which in a real detector go down
+        #                the beam line and are not associated with the vertex.
+        # Definition A was found to carry a few-GeV forward energy excess that is
+        # negligible at large nu but DOMINATES at large x (where nu is small),
+        # biasing the Jacquet-Blondel nu by a factor ~2.5.  B and C exist to
+        # remove it; see docs/XRECO.md.
+        THETA_FWD = 1.0e-3          # rad
+        acc = {k: [0.0, 0.0, 0.0, 0.0] for k in ("all", "norem", "cone")}
+        sigma = 0.0
         for i in range(ev.size()):
             p = ev[i]
             if not p.isFinal() or i == scattered_idx:
@@ -195,8 +209,19 @@ def shower_one(lhe, n_events, is_neutron):
                 continue
             if p.statusAbs() == 62 and p.id() == 22:
                 continue
-            e_had += p.e(); px += p.px(); py += p.py(); pz += p.pz()
-            sigma += p.e() - p.pz()
+            e, px_, py_, pz_ = p.e(), p.px(), p.py(), p.pz()
+            th_p = np.arctan2(np.hypot(px_, py_), pz_) if pz_ != 0 else np.pi / 2
+            is_rem = 61 <= p.statusAbs() <= 63
+            for key, keep in (("all", True),
+                              ("norem", not is_rem),
+                              ("cone", (not is_rem) and th_p > THETA_FWD)):
+                if keep:
+                    a = acc[key]
+                    a[0] += e; a[1] += px_; a[2] += py_; a[3] += pz_
+            sigma += e - pz_
+        e_had, px, py, pz = acc["all"]
+        e_had_nr, px_nr, py_nr, pz_nr = acc["norem"]
+        e_had_co, px_co, py_co, pz_co = acc["cone"]
 
         # ---- leading semileptonic decay muon ----
         n_semi = sum(1 for r in charm_idx.values() if r["mu"] is not None)
@@ -211,6 +236,8 @@ def shower_one(lhe, n_events, is_neutron):
             w_raw=pythia.infoPython().weight(), is_neutron=float(is_neutron),
             e_in=in_mu.e(), p_out=out_mu.pAbs(), theta_mu=theta_mu, q2=q2,
             e_had=e_had, px_had=px, py_had=py, pz_had=pz, sigma_had=sigma,
+            e_had_nr=e_had_nr, px_nr=px_nr, py_nr=py_nr, pz_nr=pz_nr,
+            e_had_co=e_had_co, px_co=px_co, py_co=py_co, pz_co=pz_co,
             n_charm=float(len(charm_idx)), n_semilep_mu=float(n_semi),
             mu2_q=(1.0 if lead_mu is not None and lead_mu.id() < 0 else
                    (-1.0 if lead_mu is not None else np.nan)),
