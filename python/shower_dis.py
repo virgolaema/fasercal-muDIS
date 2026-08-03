@@ -99,6 +99,7 @@ def charm_ancestor(event, i):
 
 
 KEYS = ["w_raw", "is_neutron", "e_in", "p_out", "theta_mu", "q2",
+        "e_nu_all", "e_nu_charm", "e_em", "e_neuhad", "e_chhad",
         "e_had", "px_had", "py_had", "pz_had", "sigma_had",
         "e_had_nr", "px_nr", "py_nr", "pz_nr",
         "e_had_co", "px_co", "py_co", "pz_co",
@@ -198,6 +199,37 @@ def shower_one(lhe, n_events, is_neutron):
         # negligible at large nu but DOMINATES at large x (where nu is small),
         # biasing the Jacquet-Blondel nu by a factor ~2.5.  B and C exist to
         # remove it; see docs/XRECO.md.
+        # Energy carried by NEUTRINOS (which escape) and the EM / charged-hadron
+        # / neutral-hadron split (which a non-compensating calorimeter responds
+        # to differently).  These are what decide whether the calorimetric
+        # x-reconstruction methods are actually viable:
+        #   e_nu_charm : neutrinos from charm semileptonic decays -- an
+        #                IRREDUCIBLE loss, and specific to the signal events.
+        #                Identified by charm ancestry, so it is clean even
+        #                though the raw particle sum is contaminated by the
+        #                fictitious-beam remnant.
+        #   e_nu_all   : all neutrinos, for reference.
+        #   e_em / e_chhad / e_neuhad : for non-compensation studies.
+        e_nu_all = e_nu_charm = e_em = e_neuhad = e_chhad = 0.0
+        for i in range(ev.size()):
+            p = ev[i]
+            if not p.isFinal() or i == scattered_idx:
+                continue
+            if p.statusAbs() == 62 and p.id() == 22:
+                continue
+            ida = abs(p.id())
+            if ida in (12, 14, 16):
+                e_nu_all += p.e()
+                a = charm_ancestor(ev, i)
+                if a >= 0 and a in charm_idx:
+                    e_nu_charm += p.e()
+            elif ida in (22, 11):
+                e_em += p.e()
+            elif p.isCharged():
+                e_chhad += p.e()
+            else:
+                e_neuhad += p.e()
+
         THETA_FWD = 1.0e-3          # rad
         acc = {k: [0.0, 0.0, 0.0, 0.0] for k in ("all", "norem", "cone")}
         sigma = 0.0
@@ -236,6 +268,8 @@ def shower_one(lhe, n_events, is_neutron):
             w_raw=pythia.infoPython().weight(), is_neutron=float(is_neutron),
             e_in=in_mu.e(), p_out=out_mu.pAbs(), theta_mu=theta_mu, q2=q2,
             e_had=e_had, px_had=px, py_had=py, pz_had=pz, sigma_had=sigma,
+            e_nu_all=e_nu_all, e_nu_charm=e_nu_charm,
+            e_em=e_em, e_neuhad=e_neuhad, e_chhad=e_chhad,
             e_had_nr=e_had_nr, px_nr=px_nr, py_nr=py_nr, pz_nr=pz_nr,
             e_had_co=e_had_co, px_co=px_co, py_co=py_co, pz_co=pz_co,
             n_charm=float(len(charm_idx)), n_semilep_mu=float(n_semi),

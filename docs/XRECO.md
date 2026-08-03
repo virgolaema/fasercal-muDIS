@@ -8,18 +8,40 @@
 substantially rescues it.** At the CDR's own resolutions, the large-x charm
 signal retained (efficiency × purity) is:
 
-| method | x ≥ 0.2 | vs lepton-only | x ≥ 0.4 | vs lepton-only |
-|---|---:|---:|---:|---:|
-| lepton-only (what the paper uses) | 0.145 | — | 0.031 | — |
-| Jacquet–Blondel | 0.268 | ×1.8 | 0.051 | ×1.6 |
-| **Σ (fixed-target)** | **0.501** | **×3.5** | **0.145** | **×4.7** |
-| double-angle | 0.572 | ×3.9 | 0.223 | ×7.2 |
+| method | x ≥ 0.2 | vs lepton-only | if E_in **not** measured |
+|---|---:|---:|---|
+| lepton-only (what the paper uses) | 0.145 | — | **unavailable** |
+| Jacquet–Blondel | 0.268 | ×1.8 | 0.283 |
+| **Σ (fixed-target)** | **0.501** | **×3.5** | **0.501 — unchanged** |
+| double-angle | 0.572 | ×3.9 | **unavailable** |
+
+*Only x ≥ 0.2 is quoted. Above x = 0.4 the perturbative sample has **12 raw
+events**, so nothing there is statistically meaningful.*
 
 **Σ is the method to use.** Double-angle scores marginally higher at the nominal
 point but degrades steeply with the hadronic angular resolution (0.65 → 0.36
 between 0 and 50 mrad), whereas **Σ is flat at 0.501 across the whole range** —
 it depends on E + p_z, which is first-order insensitive to θ_h. It is also the
 only method that does not require the incoming muon energy to be measured.
+
+### The incoming muon energy decides which methods even exist
+
+The downstream spectrometer sees only the **outgoing** muon. If E_in is not
+measured anywhere, then:
+
+| method | dependence on E_in | consequence |
+|---|---|---|
+| lepton-only | ν = E_in − E′, amplified by 1/y | **impossible** |
+| double-angle | x ∝ E_in (linear) | **impossible** |
+| Jacquet–Blondel | only via the mild (1−y) | usable |
+| **Σ** | **reconstructs it from the final state** | **works by design** |
+
+So in that scenario **Σ is the only good method left**, and it loses nothing.
+
+Note JB gets *better* without a measured E_in (0.268 → 0.283): the
+Σ-reconstructed E_in, coming from the 9 % calorimeter, is more accurate than the
+54 % spectrometer measurement. Even when E_in *is* measured, it is better to
+reconstruct it from the final state.
 
 > The honest hypothesis — *"FASERcal may reconstruct large-x better than FASERν
 > despite worse angular resolution, because it has an energy measurement emulsion

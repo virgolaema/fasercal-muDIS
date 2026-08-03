@@ -157,17 +157,43 @@ def _x_from(q2, nu):
     return q2 / (2.0 * M_N * nu)
 
 
-def reconstruct(d, rng, res=None):
-    """Return {method: x_reco} for the four methods."""
+def reconstruct(d, rng, res=None, ein_known=True):
+    """
+    Return {method: x_reco} for the four methods.
+
+    ein_known=True   the incoming muon energy is measured (e.g. by an upstream
+                     spectrometer).  All four methods are available.
+    ein_known=False  it is NOT measured -- which is the situation if only the
+                     DOWNSTREAM spectrometer exists, since that sees only the
+                     outgoing muon.  Then:
+                       * lepton-only  : impossible (nu = E_in - E' needs it)
+                       * double-angle : impossible (x_DA is proportional to E_in)
+                       * Jacquet-Blondel : usable, E_in enters only the mild
+                         (1-y) factor; the Sigma-reconstructed E_in is used
+                       * Sigma        : unaffected -- it reconstructs E_in from
+                         the final state, which is exactly what it is for
+                     The two impossible methods return NaN rather than a number,
+                     so they cannot silently contribute to a comparison.
+    """
     s = smear(d, rng, res)
     ein, pout, th = s["ein"], s["pout"], s["thmu"]
     one_m_cos = 1.0 - np.cos(th)
 
+    # E_in as reconstructed from the final state (the Sigma estimator); this is
+    # what the calorimetric methods fall back on when E_in is not measured.
+    ein_sig = 0.5 * (s["ehad"] + s["pz"] + pout * (1.0 + np.cos(th)) - M_N)
+    ein_sig = np.maximum(ein_sig, pout + 1e-3)
+    ein_for_y = ein if ein_known else ein_sig
+
     out = {}
+    nan = np.full(len(ein), np.nan)
 
     # 1. lepton-only
-    q2_l = 2.0 * ein * pout * one_m_cos
-    out["lepton-only"] = _x_from(q2_l, ein - pout)
+    if ein_known:
+        q2_l = 2.0 * ein * pout * one_m_cos
+        out["lepton-only"] = _x_from(q2_l, ein - pout)
+    else:
+        out["lepton-only"] = nan
 
     # 2. Jacquet-Blondel: nu straight from the calorimeter.
     # The measured hadronic energy is nu + M (it includes the struck nucleon's
@@ -176,23 +202,24 @@ def reconstruct(d, rng, res=None):
     # where nu is only ~9 GeV.
     nu_jb = np.maximum(s["ehad"] - M_N, 1e-6)
     pt_h = np.hypot(s["px"], s["py"])
-    y_jb = np.clip(nu_jb / ein, 1e-6, 0.999)
+    y_jb = np.clip(nu_jb / ein_for_y, 1e-6, 0.999)
     q2_jb = pt_h**2 / (1.0 - y_jb)
     out["Jacquet-Blondel"] = _x_from(q2_jb, nu_jb)
 
-    # 3. Sigma (fixed-target): rebuild E_in from the final state via E + p_z
-    ein_sig = 0.5 * (s["ehad"] + s["pz"] + pout * (1.0 + np.cos(th)) - M_N)
-    ein_sig = np.maximum(ein_sig, pout + 1e-3)
+    # 3. Sigma (fixed-target): E_in rebuilt above from E + p_z
     q2_s = 2.0 * ein_sig * pout * one_m_cos
     out["Sigma"] = _x_from(q2_s, ein_sig - pout)
 
     # 4. double-angle
-    th_h = np.arctan2(np.hypot(s["px"], s["py"]), np.maximum(s["pz"], 1e-9))
-    denom = np.sin(th + th_h)
-    e_da = np.where(np.abs(denom) > 1e-6, ein * np.sin(th_h) / denom, np.nan)
-    e_da = np.clip(e_da, 0.5, None)
-    q2_da = 2.0 * ein * e_da * one_m_cos
-    out["double-angle"] = _x_from(q2_da, ein - e_da)
+    if ein_known:
+        th_h = np.arctan2(np.hypot(s["px"], s["py"]), np.maximum(s["pz"], 1e-9))
+        denom = np.sin(th + th_h)
+        e_da = np.where(np.abs(denom) > 1e-6, ein * np.sin(th_h) / denom, np.nan)
+        e_da = np.clip(e_da, 0.5, None)
+        q2_da = 2.0 * ein * e_da * one_m_cos
+        out["double-angle"] = _x_from(q2_da, ein - e_da)
+    else:
+        out["double-angle"] = nan
 
     return out
 
