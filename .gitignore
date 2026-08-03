@@ -7,3 +7,11 @@ __pycache__/
 logs/*.log
 output/*.pdf
 *.npz
+# the compiled note IS tracked - it is the review deliverable
+!note/fasercal_muondis.pdf
+
+# LaTeX build products (the PDF itself is tracked on purpose)
+note/*.aux
+note/*.log
+note/*.out
+note/*.toc
