@@ -24,11 +24,16 @@ as-designed geometry, on-axis-equivalent flux:
 
 Charge-tag purity **97.3 %**. Reach, by absorber option and off-axis flux:
 
-| configuration | mass | F=1.0 (+X side) | F=2.0 (−X side) |
-|---|---:|---:|---:|
-| no W (reference) | 0.470 t | σ(A_c) = 0.044 | 0.031 |
-| **1 mm W/module** | **0.514 t** | **0.042** | **0.030** |
-| 5 mm W/module | 0.692 t | 0.036 | **0.026** |
+Position **resolved**: the detector is on the **left of the LoS looking
+downstream**, i.e. the **+452 mm** side, where the FLUKA map gives
+**F_flux = 0.96** — essentially the on-axis value (the mirror lobe at −452 mm
+would have given 2.02).
+
+| configuration | mass | σ(A_c) at ε = 0.9 |
+|---|---:|---:|
+| no W (reference) | 0.470 t | 0.045 |
+| **1 mm W/module** | **0.514 t** | **0.043** |
+| 5 mm W/module | 0.692 t | 0.037 |
 
 ---
 
@@ -67,7 +72,7 @@ Charge-tag purity **97.3 %**. Reach, by absorber option and off-axis flux:
 3. **Acceptance is angular, not momentum.** Decay µ median 33 mrad vs scattered µ 4.3 mrad; 83 % already pass the momentum cut.
 4. **Tungsten helps, but modestly** — the designed 5 mm option is only ×1.34 in tagged yield over 1 mm, because the absorber is per module (see correction #8).
 5. **Charge ID is not the bottleneck** — median decay µ is 11.5 GeV, so η ≈ 3 % for any plausible magnet. The MDT/1.5 T design is comfortably sufficient.
-6. **Off-axis is not a penalty.** The flux is asymmetric about the LoS; at the designed position it is ×1.0 or ×2.0 depending on the X sign convention.
+6. **Off-axis is not a penalty, but FASERCal sits in the quieter lobe.** The flux is strongly asymmetric about the LoS (up to ×4.9 on the −x side, where it is also harder and µ⁺-enriched). The detector is on the +x side, where F_flux = 0.96 — the conservative branch.
 
 ---
 
@@ -115,7 +120,7 @@ Much shorter than before — the talk resolved most of it.
 
 | # | need | why it matters |
 |---|---|---|
-| **1** | **X sign convention**: does FASERCal's +452 mm shift correspond to +x or −x in the FLUKA ntuple (`truth_prod_x`)? | **factor 2 on every absolute yield** — the single biggest remaining lever |
+| **1** | One-line confirmation that the FLUKA ntuple's `truth_prod_x` is the standard right-handed FASER/ATLAS x (so that "left looking downstream" = +x) | if reversed, every yield ×2.1 |
 | **2** | Momentum resolution and charge-confusion vs p from the MDT/GenFit study (slides 35–38 show the machinery, not the resolved curve) | replaces the toy charge-confusion sigmoid |
 | **3** | Hadronic energy / jet resolution for **3DCAL alone** — the talk gives them for the full 3DCAL+ECAL+AHCAL+MuSpect chain (p_jet: bias 9 %, res 9 % for NC) | needed for the x-reconstruction study; if AHCAL is excluded the resolution will be worse |
 | **4** | Confirmation that muon DIS should use 3DCAL only, or 3DCAL+ECAL+AHCAL | the talk's own numbers show AHCAL has 3.3 t vs 3DCAL's 0.5 t — a **6× larger** target |

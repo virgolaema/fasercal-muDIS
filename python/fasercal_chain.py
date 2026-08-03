@@ -93,30 +93,36 @@ M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
 # So going off-axis can INCREASE the muon-DIS yield.  A plausible working range
 # is ~0.3 (shielded/vertical) to ~10 (horizontal, beam-pipe side).
 #
-# MEASURED from the FASER FLUKA simulation by python/fluka_offaxis_map.py
-# (source: /eos/experiment/fasernu-data0/faser/sim/mc22/fluka/210007/bck/s0010-r0019).
-# F_flux for a FASERnu-sized window centred at (x0,y0) cm, relative to on-axis:
+# RESOLVED.  The detector sits on the LEFT of the LoS looking downstream from
+# the production point (user, 2026-08).  In the standard right-handed frame
+# (+z downstream, +y up, x_hat x y_hat = z_hat) a viewer looking along +z with
+# +y up has right_hat = -x_hat, so LEFT = +x.  The designed shift is therefore
+# (+452, +236) mm, and the FLUKA map (python/fluka_offaxis_map.py, source
+# /eos/experiment/fasernu-data0/faser/sim/mc22/fluka/210007/bck/s0010-r0019)
+# evaluated over the 480x480 mm 3DCAL face at that point gives
 #
+#     F_flux = 0.96 ,  <p_mu> = 985 GeV ,  mu+ fraction = 0.25
+#
+# i.e. essentially the SAME flux as on-axis -- the conservative branch.  (The
+# mirror position (-452,+236) would have given F = 2.02 with a mu+-enriched,
+# harder beam; that is the lobe the detector does NOT sit in.)
+#
+# Remaining assumption: that the FLUKA ntuple's truth_prod_x uses the same
+# right-handed FASER/ATLAS convention.  If its x axis were defined with the
+# opposite sign, F_flux would be 2.02 instead of 0.96 -- a factor 2.1 on every
+# absolute yield.  One line to confirm.
+#
+# Full transverse map, F_flux for a FASERnu-sized window at (x0,y0) cm:
 #        y0=0    y0=+50  y0=+100        <p> [GeV]      mu+ fraction
 #   x0=+100  1.49   0.98    1.88          1973            0.09
-#   x0=   0  1.00   1.42    1.43           931            0.27  <- reference
+#   x0=   0  1.00   1.42    1.43           931            0.27
 #   x0= -50  1.88   2.99    1.76          1969            0.78
 #   x0=-100  3.89   4.94    2.43          2079            0.74
-#
-# Three measured features, all favourable:
-#   1. the flux RISES off-axis, up to ~4.9x at (-100,+50) cm;
-#   2. it is strongly left/right ASYMMETRIC (the -x side is 2-4x the +x side),
-#      as expected from magnetic sweeping;
-#   3. the spectrum gets HARDER off-axis (<p> 931 -> ~2000 GeV), not softer as
-#      naively expected -- and DIS/charm yields rise with E_mu, so this
-#      compounds the flux gain.
-# The mu+ fraction flips from 0.27 on-axis to ~0.75 at -x: the lobes are
-# charge-separated, which helps the dimuon tag (known beam charge).
-#
-# Caveat: modest statistics (585 raw muons in the on-axis window) and the
-# |x0|=150 cm points are at the edge of the simulated region and unreliable.
-F_FLUX = 1.0                     # 1.0 = on-axis reference window
-F_FLUX_RANGE = (1.0, 2.0, 3.9, 4.9)   # measured on-axis .. best off-axis
+# The flux RISES off-axis on the -x side (magnetic sweeping) and the lobes are
+# charge-separated; the +x side, where FASERCal sits, is close to the on-axis
+# value.
+F_FLUX = 0.96                    # measured at the designed (+452,+236) mm
+F_FLUX_RANGE = (0.96, 2.02)   # FASERCal position, and its mirror
 
 # --------------------------------------------------- detector response (toy)
 # The Run 4 TP Sec. 6.5/6.6 (spectrometer magnet, muon tracker) are empty, so
