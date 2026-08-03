@@ -38,6 +38,85 @@ def load(npz):
     return {k: f[k] for k in f.files}
 
 
+def page_conditions(pdf, d):
+    """
+    Front page: every condition and input the report depends on, plus a
+    to-scale schematic of the FASERCal layout.  Drawn from the numbers in
+    geometry.py / fasercal_chain.py so the picture cannot drift from the code.
+    """
+    import geometry as G
+    fig = plt.figure(figsize=(11.5, 9.6))
+    gs = fig.add_gridspec(2, 1, height_ratios=[0.72, 1.28], hspace=0.05,
+                          top=0.95, bottom=0.03)
+
+    # ---------------- schematic (side view, z along beam) ----------------
+    ax = fig.add_subplot(gs[0])
+    # subdetector: (label, length cm, half-height cm, colour)
+    subs = [("3DCAL\n10 modules", 255.8, 24.0, "#c9c9a0"),
+            ("ECAL", 24.0, 36.0, "#b0b0b0"),
+            ("AHCAL", 92.0, 43.0, "#8f8fc0"),
+            ("MuSpect\n3 x Fe 1.5 T + MDT", 175.1, 50.0, "#7a7ab5")]
+    z = 0.0
+    for name, dz, hy, col in subs:
+        ax.add_patch(plt.Rectangle((z, -hy), dz, 2 * hy, facecolor=col,
+                                   edgecolor="black", lw=1.0, alpha=0.85))
+        ax.text(z + dz / 2, 0, name, ha="center", va="center", fontsize=8.5,
+                fontweight="bold")
+        ax.text(z + dz / 2, -hy - 5, f"{dz:.0f} cm", ha="center", va="top", fontsize=7.5)
+        z += dz + 6
+    # the 10 3DCAL modules
+    for i in range(G.N_MODULES):
+        ax.plot([i * 25.58, i * 25.58], [-24, 24], color="black", lw=0.4, alpha=0.5)
+    # line of sight
+    ax.axhline(0, color="#c44e52", ls="--", lw=1.4)
+    ax.text(z + 4, 0, "LoS", color="#c44e52", fontsize=9, va="center", fontweight="bold")
+    ax.annotate("", xy=(-14, 0), xytext=(-14, 23.6),
+                arrowprops=dict(arrowstyle="<->", color="#1f3b57", lw=1.4))
+    ax.text(-18, 12, "LoS shift\n23.6 cm in Y\n45.2 cm in X\n(tilt 4.5$\\degree$)",
+            fontsize=8, ha="right", va="center", color="#1f3b57")
+    ax.set_xlim(-70, z + 30); ax.set_ylim(-62, 62)
+    ax.set_xlabel("z along the beam [cm]", fontsize=10)
+    ax.set_aspect("equal"); ax.set_yticks([])
+    for sp in ("top", "right", "left"):
+        ax.spines[sp].set_visible(False)
+    ax.set_title("FASERCal layout, to scale (side view) — this study uses the 3DCAL only",
+                 fontsize=11.5)
+
+    # ---------------- conditions table ----------------
+    ax2 = fig.add_subplot(gs[1]); ax2.axis("off")
+    g1, g5 = G.configure(0.1), G.configure(0.5)
+    rows = [
+        ("Luminosity (Run 4 nominal)", f"{F.LUMI_RUN4:.0f} fb$^{{-1}}$", "FASERCal Bern CM talk"),
+        ("Fiducial volume", "3DCAL only, AHCAL excluded", "as requested"),
+        ("3DCAL geometry", f"{G.N_MODULES} modules x {G.LAYERS_PER_MODULE} layers of "
+                           f"{G.CUBE_CM:.0f} cm$^3$ cubes", "talk slide 4"),
+        ("3DCAL face", f"{G.FACE_CM:.0f} x {G.FACE_CM:.0f} cm", "talk slide 11"),
+        ("Absorber", "1 mm or 5 mm W per MODULE (every 20 layers)", "talk slide 39"),
+        ("Fiducial mass", f"{g1['m_tot']:.3f} t (1 mm) / {g5['m_tot']:.3f} t (5 mm)", "computed"),
+        ("Radiation / collision length (5 mm)", f"{g5['x0_total']:.1f} $X_0$ / "
+                                                f"{g5['lambda_int']:.1f} $\\lambda$",
+         "cf. quoted 18.3 / 4.8"),
+        ("Position", f"LoS shift ({G.LOS_SHIFT_X_MM:.0f}, {G.LOS_SHIFT_Y_MM:.0f}) mm, "
+                     f"tilt {G.TILT_DEG:.1f}$\\degree$", "talk slides 11-12"),
+        ("Target composition", "polystyrene CH, $w_p$=0.538 (+ W where present)", "computed per event"),
+        ("Muon flux", "FASERnu Run 3 LHAPDF grid 'var2' (25x30 cm)", "arXiv:2506.13889 Eq. 2.1"),
+        ("Off-axis flux factor", "$F_{\\rm flux}$ = 1.0 (+X) or 2.0 ($-$X), FLUKA map",
+         "X sign UNRESOLVED"),
+        ("Spectrometer acceptance", f"{100*F.DEFAULTS['acc_spectrometer']:.0f}% "
+                                    "($\\geq$2 MDT stations)", "talk slide 33"),
+        ("Generator", "POWHEG + Pythia8, NNPDF4.0 fitted vs perturbative charm", "10 seeds, 764k events"),
+        ("Charge tag", "semileptonic $\\mu$ charge = charm sign", "verified in code, 100%"),
+    ]
+    tab = ax2.table(cellText=rows, colLabels=["condition", "value", "source"],
+                    colWidths=[0.32, 0.44, 0.24], loc="center", cellLoc="left")
+    tab.auto_set_font_size(False); tab.set_fontsize(8.6); tab.scale(1, 1.42)
+    for j in range(3):
+        tab[0, j].set_facecolor("#1f3b57")
+        tab[0, j].set_text_props(color="white", fontweight="bold")
+    ax2.set_title("All conditions and inputs used in this report", fontsize=12, pad=26)
+    _emit(fig, pdf, "09_conditions", tight=False)
+
+
 def page_cutflow(pdf, d, m):
     """The requested chain, as an explicit cutflow table."""
     fig, ax = plt.subplots(figsize=(11.5, 7)); ax.axis("off")
@@ -380,6 +459,7 @@ def main():
     m = F.chain(d)
     os.makedirs(os.path.dirname(args.output), exist_ok=True)
     with PdfPages(args.output) as pdf:
+        page_conditions(pdf, d)
         page_cutflow(pdf, d, m)
         page_funnel(pdf, m)
         page_muon_spectrum(pdf, d)
