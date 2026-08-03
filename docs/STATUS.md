@@ -1,6 +1,7 @@
 # FASERcal muon-DIS charm study — status
 
-*Updated 2026-08-03, after the FASERCal Bern CM talk (15 July 2026). Repo `muondis-fasercal`, all local, nothing pushed.*
+*Updated 2026-08-03, after the FASERCal Bern CM talk (15 July 2026).*
+*Repo: [github.com/virgolaema/fasercal-muDIS](https://github.com/virgolaema/fasercal-muDIS) (pushed).*
 
 **Where we are:** the full chain from muon-DIS interactions to charge-signed charm
 muons is simulated end to end. The Bern talk replaced most of the remaining
@@ -11,18 +12,19 @@ assumptions with designed values — and corrected several of them substantially
 ## 1. Headline numbers
 
 Run 4 at **780 fb⁻¹** (FASERCal's own nominal), **3DCAL only** (AHCAL excluded),
-as-designed geometry, on-axis-equivalent flux:
+as-designed geometry, at the measured off-axis flux (F_flux = 0.96) and
+identification+linking efficiency ε = 0.9:
 
 | stage | 1 mm W/module | fraction |
 |---|---:|---|
-| Muon DIS in 3DCAL | **361 520** | 100 % |
-| … containing charm | 10 215 | 2.83 % |
-| … charm → semileptonic µ | 1 794 | 17.6 % of charm |
-| … µ punches out | 1 477 | 82.4 % |
-| … reaches spectrometer (43 %) | 635 | 43 % |
-| … identified + linked | **572** | **0.158 % of DIS** |
+| Muon DIS in 3DCAL | **347 059** | 100 % |
+| … containing charm | 9 807 | 2.83 % |
+| … charm → semileptonic µ | 1 722 | 17.6 % of charm |
+| … µ punches out | 1 418 | 82.4 % |
+| … reaches spectrometer (43 %) | 610 | 43 % |
+| … identified + linked (ε = 0.9) | **549** | **0.158 % of DIS** |
 
-Charge-tag purity **97.3 %**. Reach, by absorber option and off-axis flux:
+Charge-tag purity **97.3 %**. The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
 
 Position **resolved**: the detector is on the **left of the LoS looking
 downstream**, i.e. the **+452 mm** side, where the FLUKA map gives
