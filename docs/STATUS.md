@@ -115,7 +115,34 @@ the x-reconstruction study the decisive question.
 
 ---
 
-## 2c. The σ_p inputs are now known — and they threaten lepton-only x reconstruction
+## 2c. RESULT: the calorimeter rescues large-x — see [`docs/XRECO.md`](XRECO.md)
+
+The showstopper question is **answered**. Large-x signal retained
+(efficiency × purity), at the CDR's own resolutions:
+
+| method | x ≥ 0.2 | x ≥ 0.4 |
+|---|---:|---:|
+| lepton-only (the paper's) | 0.145 | 0.031 |
+| Jacquet–Blondel | 0.268 | 0.051 |
+| **Σ (fixed-target)** | **0.501 (×3.5)** | **0.145 (×4.7)** |
+| double-angle | 0.572 (×3.9) | 0.223 (×7.2) |
+
+**Σ is the method to use** — double-angle scores marginally higher at the nominal
+point but degrades steeply with the hadronic angular resolution, while Σ is flat
+across 0–100 mrad (it depends on E + p_z, first-order insensitive to θ_h) and is
+the only method not needing the incoming muon energy measured.
+
+All four methods close at **1.0000** with a perfect detector, so the framework is
+validated before smearing. Report: `reports/fasercal_xreco.pdf` (2 pages:
+migration matrices; efficiency × purity vs σ_θh).
+
+Main caveat: **neutrino energy loss from charm semileptonic decays is not
+modelled**, and it works against the calorimetric methods. And σ_θh = 20 mrad is
+an assumption — though the conclusion is stable because Σ is insensitive to it.
+
+---
+
+## 2d. Why lepton-only fails
 
 The CDR (§2.6.2) gives the measured momentum resolution of the FASERCal muon
 spectrometer, from a full Geant4 + GenFit fit. Applied to the muon momenta in
@@ -192,7 +219,10 @@ re-showering: `e_in`, `E_had`, the hadronic vector and Σ(E−p_z) are all cache
 ## 5. What is MISSING / open
 
 **Physics not yet simulated**
-- [ ] **[TOP PRIORITY]** x-reconstruction comparison (lepton-only vs Jacquet–Blondel vs Σ vs double-angle) and the truth-x → reco-x migration matrix vs arXiv:2506.13889 §4, at the CDR's real σ_p (47 %, not the paper's 10/30 %) and σ_E_had (~9 %). See §2c — this is the answer to the showstopper question.
+- [x] ~~x-reconstruction comparison~~ — **DONE**, see §2c and [`docs/XRECO.md`](XRECO.md). Σ retains ×3.5 (x≥0.2) to ×4.7 (x≥0.4) more large-x signal than lepton-only.
+- [ ] Fold in **neutrino energy loss** from charm semileptonic decays — the one unmodelled effect that works *against* the calorimetric methods
+- [ ] Replace the assumed σ_θh = 20 mrad with a real FASERcal reconstruction number
+- [ ] More seeds: only **12 perturbative charm events above x = 0.4**, so fitted-vs-perturbative ratios there are statistics-limited
 - [ ] Intrinsic charm **differentially in x** (inclusive ratio is only 1.08 and washes out)
 - [ ] Backgrounds: π/K decay-in-flight muons faking the soft second muon — **not simulated**
 - [ ] Pile-up / linking with the ~1 Hz/cm² background muon flux

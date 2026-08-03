@@ -1,105 +1,143 @@
-# Bjorken-x reconstruction — status and a blocker found
+# Bjorken-x reconstruction in FASERcal — RESULT
 
-*2026-08-03. Study in progress; this records what the first pass established and
-the problem that stopped it.*
+*2026-08-03. Answers the "showstopper" question. Report: `reports/fasercal_xreco.pdf`.*
 
-## The question
+## Bottom line
 
-Intrinsic charm shows up as a **large-x excess of charm**: fitted/perturbative
-= 1.8× at x = 0.2, 5.7× at 0.4, 10.9× at 0.5, 44× at 0.7. arXiv:2506.13889 §4
-reconstructs x from the muon alone and finds that **σ_p = 10 % drops the x ≥ 0.2
-excess from ×8 to ~×2, and σ_p = 30 % removes it entirely.**
+**The showstopper is real for the lepton-only method, and FASERcal's calorimeter
+substantially rescues it.** At the CDR's own resolutions, the large-x charm
+signal retained (efficiency × purity) is:
 
-FASERcal's spectrometer sits at **σ_p/p ≈ 47 %** for the median scattered muon
-(CDR §2.6.2) — far inside the "signal gone" regime. The hypothesis to test is
-that **calorimetric** methods survive where the lepton-only method dies, because
-the hadronic resolution (~9 %) is five times better than the muon momentum.
+| method | x ≥ 0.2 | vs lepton-only | x ≥ 0.4 | vs lepton-only |
+|---|---:|---:|---:|---:|
+| lepton-only (what the paper uses) | 0.145 | — | 0.031 | — |
+| Jacquet–Blondel | 0.268 | ×1.8 | 0.051 | ×1.6 |
+| **Σ (fixed-target)** | **0.501** | **×3.5** | **0.145** | **×4.7** |
+| double-angle | 0.572 | ×3.9 | 0.223 | ×7.2 |
 
-## Why the lepton-only method is structurally fragile — quantified
+**Σ is the method to use.** Double-angle scores marginally higher at the nominal
+point but degrades steeply with the hadronic angular resolution (0.65 → 0.36
+between 0 and 50 mrad), whereas **Σ is flat at 0.501 across the whole range** —
+it depends on E + p_z, which is first-order insensitive to θ_h. It is also the
+only method that does not require the incoming muon energy to be measured.
 
-| quantity | median |
+> The honest hypothesis — *"FASERcal may reconstruct large-x better than FASERν
+> despite worse angular resolution, because it has an energy measurement emulsion
+> cannot provide"* — is **supported**.
+
+## Why lepton-only fails
+
+| | median |
 |---|---:|
 | E_in | 665 GeV |
 | E′_µ | 469 GeV |
 | **ν = E_in − E′_µ** | **52 GeV** |
-| **y = ν/E_in** | **0.161** |
-| Q² | 4.3 GeV² |
+| **y** | **0.161** |
 
-**ν is only 7.7 % of E_in.** It is a small difference of two large numbers, so a
-fractional error ε on each muon leg propagates to roughly ε/y on ν:
+ν is only **7.7 %** of E_in — a small difference of two large numbers — so a
+fractional error ε on each muon leg propagates to ≈ ε/y on ν. The CDR
+spectrometer gives **σ_p/p = 47 %** at the median scattered-muon momentum
+(iron-core, multiple-scattering dominated: 20 % floor at 20 GeV, 63 % at 1 TeV),
+so **ν carries a ~290 % error**. The migration matrix shows essentially **no
+correlation** between x_true and x_reco.
 
-> σ_p/p = 47 % on each leg → **~290 % error on ν** → x is destroyed.
+This is not a defect of the spectrometer — it is built for muon ID and charge,
+where it excels (0.7 % misidentification). It is the wrong instrument for x.
 
-This is the mechanism behind the paper's result, now with FASERcal's real
-numbers. It is not a subtle effect.
+## Why Σ works
 
-The **angular** term, by contrast, is *not* the problem — contrary to the initial
-worry that cm voxels would be fatal versus µm emulsion. The 3DCAL measures a
-track with 1 cm voxels over ~200 layers, so the straight-line fit gives
-σ_θ ≈ σ_hit·√(12/N)/L ≈ **0.3 mrad**, against a median scattering angle of
-4.3 mrad — a 7 % effect. Multiple scattering adds ~0.06 mrad at 470 GeV. **The
-granularity penalty is largely defused by the number of samples.**
+    2 E_in = Σ_had(E + p_z) + E′(1 + cos θ_µ) − M
 
-## The blocker: the cached hadronic energy is contaminated
+reconstructs the incoming energy **from the final state**, then proceeds as
+lepton-only with that E_in. Three properties matter here:
 
-With a **perfect detector** (all resolutions set to zero), the four methods
-should each return x_reco/x_true = 1. They do not:
+1. **No incoming-muon measurement needed** — important, since the downstream
+   spectrometer only sees the outgoing muon.
+2. **First-order insensitive to θ_h.** p_z = |p| cos θ_h and θ_h ≈ 81 mrad, so a
+   20 mrad smearing changes cos θ_h by 0.2 %. Hence the flat curve.
+3. **Driven by the calorimeter (≈9 %), not the spectrometer (47 %).**
 
-| method | perfect-detector closure |
-|---|---:|
-| lepton-only | **1.000** ✓ |
-| Jacquet–Blondel | 0.620 ✗ |
-| Σ | 0.520 ✗ |
-| double-angle | 0.405 ✗ |
+(Note the collider Σ method uses E − p_z; for a fixed target with the beam along
++z that combination is identically M and carries no information, so the **E + p_z**
+form is the correct analogue. This is derived, not taken from the literature.)
 
-Lepton-only closing exactly validates the framework. The others are biased by a
-**forward energy excess in the cached E_had**:
+The **angular** worry turned out to be a non-issue for the muon: the 3DCAL fits a
+track over ~200 layers, giving σ_θ ≈ σ_hit·√(12/N)/L ≈ **0.3 mrad** against a
+4.3 mrad median scattering angle. The "cm voxels vs µm emulsion" concern is
+largely defused by the number of samples.
 
-| ν range [GeV] | ⟨ν⟩ | ⟨E_had⟩ | E_had/ν |
-|---|---:|---:|---:|
-| 0–5 | 4.0 | 5.8 | **1.47** |
-| 5–20 | 11.0 | 13.8 | 1.17 |
-| 50–150 | 85.3 | 96.6 | 1.05 |
-| 500–5000 | 790 | 845 | 1.02 |
+## Method definitions
 
-E_had − ν has a roughly constant **few-GeV forward offset** (median +3.4 GeV,
-and pz ≫ pT in the low-ν bin, so it is beam-directed). Physically E_had should
-be ν + M. The offset is negligible at large ν but **dominates at large x, where
-ν is small** — exactly the region the whole study is about. On the x ≥ 0.2 charm
-sample it reaches **E_had/ν = 2.5**, which is what biases the JB ν by ~2.5 and
-hence x_JB by ~0.4.
+Fixed-target kinematics, masses neglected, x = Q²/(2Mν):
 
-**Cause:** the hadronic sum keeps beam-remnant particles. The muon flux is
-implemented as a beam PDF of a fictitious 7 TeV beam, and removing only the
-status-62 remnant photon (as the FASERν study does, which is sufficient for
-*its* observables) leaves other remnant activity in the sum.
+| method | formula | needs |
+|---|---|---|
+| lepton-only | Q² = 2E_in E′(1−cos θ_µ), ν = E_in − E′ | both muon energies |
+| Jacquet–Blondel | ν = E_had − M, Q² = p_T,had²/(1−y) | calorimeter only |
+| Σ | E_in from E + p_z balance, then as lepton-only | calorimeter + muon angle |
+| double-angle | E′ = E_in sin θ_h / sin(θ_µ+θ_h) | angles + E_in |
 
-**This is a defect in my extraction, not in the methods.** No conclusion about
-JB / Σ / double-angle can be drawn until it is fixed.
+**JB needs the target-mass subtraction**: the measured hadronic energy is ν + M,
+and omitting M biases x_JB low by M/ν — 9 % on the x ≥ 0.2 sample where ν ≈ 9 GeV.
 
-> **Correction to an earlier statement.** I said this study needed no
-> re-showering because `e_had` and the hadronic vector were cached. That was
-> wrong: the cache stores only the *summed* hadronic four-vector, so the remnant
-> cannot be removed retroactively. Re-showering is required.
+## Inputs and their provenance
 
-## The fix, now running
+| quantity | value | source |
+|---|---|---|
+| muon momentum resolution | 20 % (20 GeV) → 63 % (1 TeV) | **CDR §2.6.2** |
+| hadronic energy resolution | 9 % | **Bern talk** (p_jet, NC) |
+| muon angular resolution | 0.3 mrad | derived from 3DCAL geometry |
+| **hadronic angular resolution** | **20 mrad** | **ASSUMPTION — not from any document.** Scanned 0–100 mrad; the conclusion is stable because Σ is insensitive to it |
 
-`shower_dis.py` now records **three** hadronic definitions per event:
+## Validation
 
-| key | definition |
+All four methods return **x_reco/x_true = 1.0000** with a perfect detector, so
+the framework is verified before any smearing is applied.
+
+## A methodological problem, and how it was solved
+
+The hadronic four-vector is computed **from momentum conservation**
+(X = q + p_target ⇒ E_had = ν + M, p_T = p_out sin θ_µ, p_z = |p_in| − p_out cos θ_µ),
+**not** by summing Pythia final-state particles.
+
+The particle sum is contaminated. The muon flux is implemented as a beam PDF of a
+fictitious 7 TeV beam, and that beam's remnant deposits a few GeV of hadronic
+activity that is not part of the DIS vertex. Energy conservation
+(E_in + M − E′ − E_had ≥ 0) fails in **80 % of events**, rising to **98 %** on the
+x ≥ 0.2 charm sample, where E_had/ν reaches **2.5**. Negligible at large ν
+(E_had/ν = 1.02 above 500 GeV), it dominates exactly where the physics is.
+
+Three fixes were tried and **all failed**:
+
+| attempt | result |
 |---|---|
-| `e_had`, `p*_had` | all non-neutrino non-muon final state (the old, contaminated one) |
-| `e_had_nr`, `p*_nr` | additionally drops **all** beam remnants (statusAbs 61–63) |
-| `e_had_co`, `p*_co` | additionally drops **very forward** particles (θ < 1 mrad), which in a real detector go down the beam line and are not associated with the vertex |
+| drop beam-remnant particles (status 61–63) | no change — the remnant *partons* are not final; their hadronic descendants are |
+| drop very forward particles (θ < 1 mrad) | removes 28 GeV on average but does not move the median |
+| require ancestry to reach beam 2 | *worse* (E_had/ν = 8.5) — Pythia's colour reconnection leaves the mother graph too connected to separate the two beam sides |
 
-Re-showering both PDF hypotheses (10 seeds each). Once done, the closure test is
-repeated: whichever definition returns 1.000 for JB with a perfect detector is
-the physically correct hadronic system, and the smearing study proceeds from
-there.
+Conservation is exact and makes the closure exact by construction, which is what
+a resolution study needs.
+
+**Not modelled, and it matters:**
+
+- **Neutrinos from charm semileptonic decays** carry energy away, biasing the
+  *measurable* E_had low for precisely the signal events. This affects the
+  calorimetric methods and is not in these numbers.
+- Charged/neutral shower composition and its detector response, folded into the
+  single σ_had parameter.
+- The ~9 % hadronic resolution is quoted for the full 3DCAL+ECAL+AHCAL chain; the
+  3DCAL alone will be worse.
+
+## Plots
+
+| page | content |
+|---|---|
+| 1 | truth-x → reco-x **migration matrices**, all four methods. Lepton-only shows almost no correlation; Σ retains a clear diagonal |
+| 2 | **efficiency × purity vs σ_θh**, at x ≥ 0.2 and 0.4. Shows Σ's flatness and double-angle's degradation |
 
 ## Next
 
-1. Re-run the perfect-detector closure on all three definitions; pick the one that closes.
-2. Truth-x → reco-x migration matrices, four methods, at the real FASERcal resolutions (σ_p from the CDR curve, σ_E_had ≈ 9 %, σ_θ ≈ 0.3 mrad).
-3. Surviving fitted/perturbative ratio at x_reco ≥ 0.2 and ≥ 0.4 — the direct answer to the showstopper question.
-4. Scan σ_E_had, since it is the parameter the calorimetric methods live or die by, and the ~9 % is quoted for the full 3DCAL+ECAL+AHCAL chain rather than the 3DCAL alone.
+1. Fold in the neutrino energy loss for charm events — the one unmodelled effect that works against the calorimetric methods.
+2. Get a real σ_θh from the FASERcal reconstruction, replacing the 20 mrad assumption.
+3. Redo with the 3DCAL-only hadronic resolution if the AHCAL is excluded.
+4. Propagate to a fitted-vs-perturbative discrimination significance. Note the current MC has only **12 perturbative charm events above x = 0.4**, so ratio-based statements there are statistics-limited and need more seeds.

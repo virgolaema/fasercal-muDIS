@@ -65,7 +65,14 @@ _SIG_NODES = np.array([0.20, 0.228, 0.29, 0.631])
 
 RESOLUTIONS = dict(
     sigma_had=0.09,        # hadronic energy, Bern talk (p_jet, NC)
-    sigma_theta=3.0e-4,    # 0.3 mrad, 3DCAL track fit
+    sigma_theta=3.0e-4,    # 0.3 mrad, 3DCAL track fit (the MUON)
+    # Direction of the HADRONIC system.  This is a shower axis in a calorimeter,
+    # not a track, so it is far worse than the muon: 3DCAL cubes are 1 cm but
+    # the AHCAL is 4x4 cm, and the axis is diluted by shower fluctuations.
+    # 20 mrad is a placeholder against a median theta_h of ~81 mrad; it is
+    # scanned in the report because both the double-angle and (through pT) the
+    # Jacquet-Blondel methods depend on it.  NOT taken from any document.
+    sigma_theta_had=20.0e-3,
     muon_scale=1.0,        # multiply the CDR muon resolution (1.0 = as measured)
 )
 
@@ -84,6 +91,44 @@ def truth(d):
     return dict(nu=nu, x=x, y=nu / np.maximum(d["e_in"], 1e-9), q2=d["q2"])
 
 
+def hadronic_truth(d):
+    """
+    The TRUE hadronic four-vector, from momentum conservation rather than from
+    summing Pythia particles.
+
+    WHY.  The hadronic system recoiling against the scattered muon is exactly
+        X = q + p_target ,   q = p_in - p_out ,   p_target = (M, 0, 0, 0)
+    so it is fully determined by the muon kinematics:
+        E_had  = nu + M
+        pT_had = p_out sin(theta_mu)
+        pz_had = |p_in| - p_out cos(theta_mu)
+
+    Summing the Pythia final state instead gives a contaminated answer: the muon
+    flux is implemented as a beam PDF of a fictitious 7 TeV beam, and that beam's
+    remnant deposits a few GeV of hadronic activity that is not part of the DIS
+    vertex.  It is negligible at large nu but dominates at large x (where nu is
+    small), and it cannot be removed by particle-level cuts -- beam-remnant
+    removal, forward-cone cuts and mother-chain ancestry were all tried and all
+    failed, the last because Pythia's colour reconnection leaves the ancestry
+    graph too connected to separate the two beam sides.  See docs/XRECO.md.
+
+    Using conservation is exact and makes the perfect-detector closure exact by
+    construction for every method, which is what a resolution study needs.
+
+    NOT MODELLED, and flagged as such:
+      * energy carried off by neutrinos from charm semileptonic decays, which
+        biases the measurable E_had low for exactly the signal events;
+      * the charged/neutral composition of the shower and its detector response,
+        which is folded into the single sigma_had parameter instead.
+    """
+    nu = d["e_in"] - d["p_out"]
+    return dict(
+        e=nu + M_N,
+        pt=d["p_out"] * np.sin(d["theta_mu"]),
+        pz=d["e_in"] - d["p_out"] * np.cos(d["theta_mu"]),
+    )
+
+
 def smear(d, rng, res=None):
     """Apply the detector response to every measured quantity."""
     r = dict(RESOLUTIONS); r.update(res or {})
@@ -96,10 +141,15 @@ def smear(d, rng, res=None):
     pout = np.maximum(gauss(d["p_out"], r["muon_scale"] * sigma_p_over_p(d["p_out"])), 0.5)
     thmu = np.maximum(d["theta_mu"] + rng.normal(0.0, r["sigma_theta"], size=n), 1e-6)
 
-    ehad = np.maximum(gauss(d["e_had"], r["sigma_had"]), 1e-3)
-    scale = ehad / np.maximum(d["e_had"], 1e-9)          # scale the vector with it
-    px, py, pz = d["px_had"] * scale, d["py_had"] * scale, d["pz_had"] * scale
-    return dict(ein=ein, pout=pout, thmu=thmu, ehad=ehad, px=px, py=py, pz=pz)
+    h = hadronic_truth(d)
+    ehad = np.maximum(gauss(h["e"], r["sigma_had"]), 1e-3)
+    # smear the hadronic DIRECTION independently of its magnitude
+    th_h = np.arctan2(h["pt"], np.maximum(h["pz"], 1e-9))
+    th_h = np.clip(th_h + rng.normal(0.0, r["sigma_theta_had"], size=n), 1e-6, np.pi - 1e-6)
+    pmag = np.hypot(h["pt"], h["pz"]) * ehad / np.maximum(h["e"], 1e-9)
+    pt = pmag * np.sin(th_h)
+    pz = pmag * np.cos(th_h)
+    return dict(ein=ein, pout=pout, thmu=thmu, ehad=ehad, px=pt, py=0.0 * pt, pz=pz)
 
 
 def _x_from(q2, nu):
@@ -119,8 +169,12 @@ def reconstruct(d, rng, res=None):
     q2_l = 2.0 * ein * pout * one_m_cos
     out["lepton-only"] = _x_from(q2_l, ein - pout)
 
-    # 2. Jacquet-Blondel: nu straight from the calorimeter
-    nu_jb = s["ehad"]
+    # 2. Jacquet-Blondel: nu straight from the calorimeter.
+    # The measured hadronic energy is nu + M (it includes the struck nucleon's
+    # rest energy), so the target mass must be subtracted to get the energy
+    # transfer.  Omitting it biases x_JB low by M/nu -- 9% on the x>=0.2 sample,
+    # where nu is only ~9 GeV.
+    nu_jb = np.maximum(s["ehad"] - M_N, 1e-6)
     pt_h = np.hypot(s["px"], s["py"])
     y_jb = np.clip(nu_jb / ein, 1e-6, 0.999)
     q2_jb = pt_h**2 / (1.0 - y_jb)
