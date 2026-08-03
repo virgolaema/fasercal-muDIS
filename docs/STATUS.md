@@ -1,6 +1,7 @@
 # FASERcal muon-DIS charm study — status
 
-*Updated 2026-08-03, after the FASERCal Bern CM talk (15 July 2026).*
+*Updated 2026-08-03, after the FASERCal Bern CM talk (15 Jul 2026) and CDR v0 (16 Feb 2026).*
+*Resolution rule: **the talk wins on conflicts, the CDR fills gaps**.*
 *Repo: [github.com/virgolaema/fasercal-muDIS](https://github.com/virgolaema/fasercal-muDIS) (pushed).*
 
 **Where we are:** the full chain from muon-DIS interactions to charge-signed charm
@@ -12,30 +13,27 @@ assumptions with designed values — and corrected several of them substantially
 ## 1. Headline numbers
 
 Run 4 at **780 fb⁻¹** (FASERCal's own nominal), **3DCAL only** (AHCAL excluded),
-as-designed geometry, at the measured off-axis flux (F_flux = 0.96) and
-identification+linking efficiency ε = 0.9:
+as-designed geometry, **1 mm W baseline**, fiducial z < 1150 mm, measured
+off-axis flux (F_flux = 0.96), identification+linking efficiency ε = 0.9:
 
-| stage | 1 mm W/module | fraction |
+| stage | events | fraction |
 |---|---:|---|
-| Muon DIS in 3DCAL | **347 059** | 100 % |
-| … containing charm | 9 807 | 2.83 % |
-| … charm → semileptonic µ | 1 722 | 17.6 % of charm |
-| … µ punches out | 1 418 | 82.4 % |
-| … reaches spectrometer (43 %) | 610 | 43 % |
-| … identified + linked (ε = 0.9) | **549** | **0.158 % of DIS** |
+| Muon DIS in 3DCAL fiducial | **187 034** | 100 % |
+| … containing charm | 5 285 | 2.83 % |
+| … charm → semileptonic µ | 928 | 17.6 % of charm |
+| … µ punches out | 764 | 82.4 % |
+| … reaches spectrometer (43 %) | 329 | 43 % |
+| … identified + linked (ε = 0.9) | **296** | **0.158 % of DIS** |
 
-Charge-tag purity **97.3 %**. The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
+Charge-tag purity **99.2 %** (CDR-measured misidentification, §2.6.2).
 
-Position **resolved**: the detector is on the **left of the LoS looking
-downstream**, i.e. the **+452 mm** side, where the FLUKA map gives
-**F_flux = 0.96** — essentially the on-axis value (the mirror lobe at −452 mm
-would have given 2.02).
+| absorber | full mass | fiducial mass | tagged | σ(A_c) |
+|---|---:|---:|---:|---:|
+| **1 mm W/module** (baseline) | 581 kg | **277 kg** | **296** | **0.058** |
+| 5 mm W/module | 896 kg | 421 kg | 445 | 0.047 |
+| 10 mm W/module | 1118 kg | 514 kg | 546 | 0.043 |
 
-| configuration | mass | σ(A_c) at ε = 0.9 |
-|---|---:|---:|
-| no W (reference) | 0.470 t | 0.045 |
-| **1 mm W/module** | **0.514 t** | **0.043** |
-| 5 mm W/module | 0.692 t | 0.037 |
+The result vs ε is report page 20; σ(A_c) ∝ 1/√ε.
 
 ---
 
@@ -92,6 +90,9 @@ would have given 2.02).
 | **8** | **W between every 1 cm layer** | **W per MODULE (every 20 layers)** | **mass 5–10× too high; 5 mm option 7.11 t → 0.692 t** |
 | 9 | fiducial mass assumed 1 t | designed **0.514 t** | yields ×0.51 |
 | 10 | luminosity 680 fb⁻¹ (TP print) | **780 fb⁻¹** (FASERCal's own) | yields ×1.15 |
+| 11 | mass computed from first principles (514 kg) | **CDR Table 5: 581 kg** | ×1.13 — my calc omitted Al enclosures, WLS fibres, glue, Tyvek |
+| 12 | no fiducial cut | **z < 1150 mm (CDR Table 8)** | **×0.48** — the dominant new effect |
+| 13 | toy charge-confusion sigmoid | **CDR §2.6.2 measured**: 0.7 % below 100 GeV | purity 97.3 % → **99.2 %** — the real spectrometer is *better* than my toy |
 
 ---
 
@@ -105,6 +106,7 @@ would have given 2.02).
 - [ ] Detector reconstruction — all kinematics still truth-level
 
 **Open questions**
+- [ ] **Run 4 muon flux may be ~2× higher than luminosity scaling implies.** CDR §1.3.2: the 2024 optics change (crossing angle reversed, Q4 off, looser collimators) already "increas[es] the rate by a factor of 2 and increas[es] the energy of the muons… a large increase in high-momentum, positively charged muons", and Run 4 goes to a 250 µrad horizontal crossing angle with mitigation "not clear". My flux is the Run 3 FLUKA sample scaled by luminosity only, so **yields may be a factor ~2 low**.
 - [ ] **Sign convention of X** between the FASERCal CAD and the FLUKA ntuple — worth a **factor 2** in every yield
 - [ ] Residual **~1.7×** normalisation gap vs the paper's Table 2.1, after the reference-mass fix. Not the flux variant. Unexplained.
 - [x] ~~The talk quotes 4.8 λ for the 3DCAL, my model gave 3.0~~ — **resolved**: the quoted figure is the nuclear **collision** length λ_T, mine was the **interaction** length λ_I. With λ_T the 5 mm option gives 5.00 vs the quoted 4.8 (and X₀ 19.1 vs 18.3). A definition mismatch, not missing material.
@@ -123,7 +125,6 @@ Much shorter than before — the talk resolved most of it.
 | # | need | why it matters |
 |---|---|---|
 | **1** | One-line confirmation that the FLUKA ntuple's `truth_prod_x` is the standard right-handed FASER/ATLAS x (so that "left looking downstream" = +x) | if reversed, every yield ×2.1 |
-| **2** | Momentum resolution and charge-confusion vs p from the MDT/GenFit study (slides 35–38 show the machinery, not the resolved curve) | replaces the toy charge-confusion sigmoid |
 | **3** | Hadronic energy / jet resolution for **3DCAL alone** — the talk gives them for the full 3DCAL+ECAL+AHCAL+MuSpect chain (p_jet: bias 9 %, res 9 % for NC) | needed for the x-reconstruction study; if AHCAL is excluded the resolution will be worse |
 | **4** | Confirmation that muon DIS should use 3DCAL only, or 3DCAL+ECAL+AHCAL | the talk's own numbers show AHCAL has 3.3 t vs 3DCAL's 0.5 t — a **6× larger** target |
 

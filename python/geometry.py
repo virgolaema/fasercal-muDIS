@@ -101,8 +101,51 @@ def theta_ms(p_gev, x0):
 
 
 # The two absorber options actually under consideration, plus a no-W reference.
+# ---------------------------------------------------------------------------
+# CDR Table 5 (v0, 16 Feb 2026) gives the AUTHORITATIVE material budget, which
+# supersedes the values computed from first principles above (those omit the
+# aluminium enclosures, WLS fibres, glue and Tyvek, and came out 13-29% light).
+# Resolution rule for this study: the Bern CM talk (15 Jul 2026) wins on
+# conflicts, the CDR fills gaps.  Mass was a gap.
+#
+#   t_W/module   length[mm]  weight[kg]   X0    lambda   nu-int per ab^-1 [k]
+#      1 mm         2410        581       6.9     4.4          15.1
+#      5 mm         2450        896      18.3     4.8          19.6
+#     10 mm         2500       1118      32.5     5.3          25.2
+CDR_TABLE5 = {
+    0.1: dict(length_mm=2410, mass_kg=581,  x0=6.9,  lam=4.4, nu_per_ab=15.1),
+    0.5: dict(length_mm=2450, mass_kg=896,  x0=18.3, lam=4.8, nu_per_ab=19.6),
+    1.0: dict(length_mm=2500, mass_kg=1118, x0=32.5, lam=5.3, nu_per_ab=25.2),
+}
+
+# FIDUCIAL REGION.  CDR Table 8 quotes rates "restricted to the fiducial region
+# z < 1150 mm", i.e. only the upstream ~48% of the 2.4 m detector, so that the
+# hadronic shower is contained downstream of the vertex.  The same containment
+# argument applies to muon DIS, so the fiducial fraction is applied here too.
+FIDUCIAL_Z_MM = 1150.0
+
+
+def cdr_config(t_w_cm, fiducial=True):
+    """
+    Material budget from CDR Table 5, optionally restricted to the fiducial
+    z < 1150 mm region.  Returns the same keys as configure() so the two are
+    interchangeable; use this one for absolute yields.
+    """
+    if t_w_cm not in CDR_TABLE5:
+        raise KeyError(f"CDR Table 5 has no entry for t_W = {t_w_cm} cm")
+    c = CDR_TABLE5[t_w_cm]
+    f_fid = min(FIDUCIAL_Z_MM / c["length_mm"], 1.0) if fiducial else 1.0
+    g = configure(t_w_cm)                       # for the derived quantities
+    m_tot = c["mass_kg"] / 1.0e3 * f_fid
+    # split the fiducial mass between scintillator and W in the computed ratio
+    frac_w = g["m_w"] / g["m_tot"]
+    return dict(g, m_tot=m_tot, m_w=m_tot * frac_w, m_sc=m_tot * (1 - frac_w),
+                x0_total=c["x0"], lambda_int=c["lam"], f_fiducial=f_fid,
+                mass_full_kg=c["mass_kg"], length_mm=c["length_mm"])
+
+
 SCENARIOS = {
-    "no_W_reference": 0.0,
-    "W_1mm_module":   0.1,
-    "W_5mm_module":   0.5,
+    "W_1mm_module":  0.1,      # CDR/talk baseline
+    "W_5mm_module":  0.5,
+    "W_10mm_module": 1.0,      # CDR Table 5 third option
 }

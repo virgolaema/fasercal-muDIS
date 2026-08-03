@@ -68,7 +68,11 @@ COMPOSITION = {
 #   -> 0.470 t scintillator, plus 0.044 t (1 mm W/module) or 0.222 t (5 mm)
 # The 1 mm option is the baseline used in the FASERCal simulations and costing,
 # so it is taken as nominal here.  geometry.configure() computes both.
-M_FID_T = 0.514    # tonne, 3DCAL with 1 mm W per module (AHCAL excluded)
+# CDR Table 5: 581 kg total for the 1 mm baseline; CDR Table 8 restricts rates
+# to the fiducial z < 1150 mm (48% of the 2410 mm length), giving 277 kg.
+# (The first-principles calculation gave 514 kg, 13% light: it omits the
+#  aluminium enclosures, WLS fibres, glue and Tyvek.)
+M_FID_T = 0.277    # tonne, 3DCAL 1 mm W, fiducial z < 1150 mm (AHCAL excluded)
 
 # REFERENCE MASS implicit in the flux normalisation.  arXiv:2506.13889 Eq. (2.1)
 # defines the flux as f_mu(x_mu) = n_T L_T dN_mu/dx_mu, i.e. the TUNGSTEN TARGET
@@ -157,8 +161,23 @@ def event_weight(d, material="scintillator_CH", lumi=LUMI_RUN4,
     return d["w_raw"] * w_nucl * scale
 
 
-def charge_confusion(p, eta0, p_half_gev, p_width_gev, **_):
-    return eta0 + (0.5 - eta0) / (1.0 + np.exp(-(p - p_half_gev) / p_width_gev))
+# Charge misidentification, MEASURED.  FASERCal CDR v0 Sec. 2.6.2 reports, from
+# a full Geant4 + GenFit Kalman fit of the baseline spectrometer (10 iron planes
+# at 1.5 T, 11 SciFi stations at 100 um, tracks required to cross >=8 stations):
+#     20 - 100  GeV : misidentification below 0.7%
+#    200 - 600  GeV : rises gradually to the 1-2% level
+#    800 - 1500 GeV : 2-5%
+# Interpolated log-linearly below.  This SUPERSEDES the previous toy sigmoid,
+# whose parameters (eta0, p_half_gev, p_width_gev) are now ignored but kept in
+# DEFAULTS so old calls do not break.
+_CC_P    = np.array([20.,  100.,  200.,  600.,  800., 1500., 5000.])
+_CC_ETA  = np.array([0.007, 0.007, 0.010, 0.020, 0.020, 0.050, 0.120])
+
+
+def charge_confusion(p, *_a, **_kw):
+    """Probability of assigning the wrong charge sign, vs muon momentum [GeV]."""
+    p = np.asarray(p, dtype=float)
+    return np.interp(np.log10(np.clip(p, 1e-3, None)), np.log10(_CC_P), _CC_ETA)
 
 
 # ------------------------------------------------------- tungsten scenarios
@@ -220,7 +239,7 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     import geometry as G
     p = dict(DEFAULTS); p.update(params or {})
     rng = rng or np.random.default_rng(2024)
-    geo = G.configure(t_w_cm)
+    geo = G.cdr_config(t_w_cm)
 
     # ---- yields per material, correct composition each ----
     w = (yield_per_tonne(d, "scintillator_CH", lumi, f_flux) * geo["m_sc"]

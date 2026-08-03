@@ -84,7 +84,7 @@ def page_conditions(pdf, d):
 
     # ---------------- conditions table ----------------
     ax2 = fig.add_subplot(gs[1]); ax2.axis("off")
-    g1, g5 = G.configure(0.1), G.configure(0.5)
+    g1, g5 = G.cdr_config(0.1), G.cdr_config(0.5)
     rows = [
         ("Luminosity (Run 4 nominal)", f"{F.LUMI_RUN4:.0f} fb$^{{-1}}$", "FASERCal Bern CM talk"),
         ("Fiducial volume", "3DCAL only, AHCAL excluded", "as requested"),
@@ -92,10 +92,14 @@ def page_conditions(pdf, d):
                            f"{G.CUBE_CM:.0f} cm$^3$ cubes", "talk slide 4"),
         ("3DCAL face", f"{G.FACE_CM:.0f} x {G.FACE_CM:.0f} cm", "talk slide 11"),
         ("Absorber", "1 mm or 5 mm W per MODULE (every 20 layers)", "talk slide 39"),
-        ("Fiducial mass", f"{g1['m_tot']:.3f} t (1 mm) / {g5['m_tot']:.3f} t (5 mm)", "computed"),
+        ("3DCAL total mass", f"{g1['mass_full_kg']:.0f} kg (1 mm) / {g5['mass_full_kg']:.0f} kg (5 mm)",
+         "CDR Table 5"),
+        ("Fiducial cut", f"z < {G.FIDUCIAL_Z_MM:.0f} mm ({100*g1['f_fiducial']:.0f}% of length)", "CDR Table 8"),
+        ("Fiducial mass", f"{1e3*g1['m_tot']:.0f} kg (1 mm) / {1e3*g5['m_tot']:.0f} kg (5 mm)", "derived"),
+        ("Charge misidentification", "0.7% ($<$100 GeV) $\\to$ 2-5% (TeV)", "CDR Sec. 2.6.2"),
+        ("Spectrometer", "10 Fe planes 1.5 T, 11 SciFi stations 100 $\\mu$m", "CDR Table 7"),
         ("Radiation / collision length (5 mm)", f"{g5['x0_total']:.1f} $X_0$ / "
-                                                f"{g5['lambda_int']:.1f} $\\lambda$",
-         "cf. quoted 18.3 / 4.8"),
+                                                f"{g5['lambda_int']:.1f} $\\lambda$", "CDR Table 5"),
         ("Position", f"LoS shift ({G.LOS_SHIFT_X_MM:.0f}, {G.LOS_SHIFT_Y_MM:.0f}) mm, "
                      f"tilt {G.TILT_DEG:.1f}$\\degree$", "talk slides 11-12"),
         ("Target composition", "polystyrene CH, $w_p$=0.538 (+ W where present)", "computed per event"),
@@ -374,7 +378,7 @@ def page_tungsten_scenarios(pdf, d, cone):
 def page_tungsten_scan(pdf, d, cone):
     """Is there an optimum absorber thickness?"""
     import geometry as G
-    tw = np.concatenate([[0.0], np.logspace(np.log10(0.02), np.log10(2.0), 26)])
+    tw = np.array(sorted(G.CDR_TABLE5))
     res = [F.chain_scenario(d, float(t), cone=cone) for t in tw]
     tag = np.array([r["n_tag"] for r in res])
     facc = np.array([100 * r["f_acc"] for r in res])
@@ -385,6 +389,7 @@ def page_tungsten_scan(pdf, d, cone):
     for nm, t in G.SCENARIOS.items():
         m = F.chain_scenario(d, t, cone=cone)
         ax1.plot(t * 10, m["n_tag"], "o", ms=10, label=nm.replace("_", " "))
+    ax1.set_xscale("log")
     ax1.set_xlabel("tungsten per module [mm]", fontsize=11)
     ax1.set_ylabel("tagged charm muons (Run 4)", fontsize=11)
     ax1.legend(fontsize=9); ax1.grid(alpha=0.3)
@@ -473,7 +478,7 @@ def page_offaxis(pdf, d, cone):
     ff = np.logspace(np.log10(0.2), np.log10(12.0), 40)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5.4))
     palette = ["#4c72b0", "#dd8452", "#c44e52"]
-    cols = {nm: palette[i % 3] for i, nm in enumerate(G.SCENARIOS)}
+    cols = {nm: palette[i % len(palette)] for i, nm in enumerate(G.SCENARIOS)}
     for nm, t in G.SCENARIOS.items():
         tag = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["n_tag"] for f in ff]
         sig = [F.chain_scenario(d, t, cone=cone, f_flux=float(f))["sigma_A"] for f in ff]
