@@ -98,13 +98,13 @@ Run 4 luminosity & $780\fb$ & FASER\emph{Cal} talk; CDR Sec.~3.1 \\
 Tungsten absorber & 1, 5 or 10\,mm \emph{per module} & talk slide 39; CDR Table 5 \\
 3DCal total mass & 581 / 896 / 1118\,kg & CDR Table 5 \\
 Fiducial region & $z<1150\,$mm ($48\%$ of length) & CDR Table 8 \\
-Position & LoS shift $(452,236)\,$mm, tilt $4.5^\circ$ & talk slides 11--12 \\
+Position & LoS shift $(572,236)\,$mm, tilt $4.5^\circ$ & talk $+$ 12\,cm (collab.) \\
 Muon momentum resolution & $20/22.8/29/63.1\%$ at $20/100/200/1000\GeV$ & CDR Sec.~2.6.2 \\
 Charge misidentification & $<0.7\%$ below $100\GeV$; $2$--$5\%$ at TeV & CDR Sec.~2.6.2 \\
 Spectrometer acceptance & $43\%$ ($\geq2$ MDT stations) & talk slide 33 \\
 Hadronic energy resolution & $\sim 9\%$ & talk (\,$p_{\rm jet}$, NC\,) \\
 \midrule
-Off-axis flux factor & $F_{\rm flux}=0.96$ & \emph{this work}, from FLUKA \\
+Off-axis flux factor & $F_{\rm flux}=1.10$ & \emph{this work}, from FLUKA \\
 Run 4 optics enhancement & $F_{\rm optics}=2.0$ & CDR Sec.~1.3.2 (rate $\times2$) \\
 Muon angular resolution & $0.3\,$mrad & \emph{derived} from 3DCal geometry \\
 Hadronic angular resolution & $20\,$mrad & \note{ASSUMPTION -- no source} \\
@@ -116,6 +116,20 @@ documents; below the rule are derived or assumed in this work. Where the talk
 and the CDR disagree, the talk (more recent) is used.}
 \label{tab:inputs}
 \end{table}
+
+\paragraph{Detector position and the off-axis flux.} FASER\emph{Cal} sits off
+the line of sight. The CDR/talk shift is $(452,236)\,$mm; the collaboration
+reports a further $12\,$cm, giving $(572,236)\,$mm. The FLUKA muon simulation
+(the same MC22 production that underlies the LHAPDF flux grid) evaluated over the
+$480\times480\,$mm face at that point gives $F_{\rm flux}=1.10$, with
+$\langle p_\mu\rangle=1188\GeV$ and a $\mu^+$ fraction of $0.18$.
+
+The sign convention is \emph{confirmed}: the FLUKA frame places FASER\emph{Cal}
+at positive $x$, consistent with ``left of the LoS looking downstream'' in a
+right-handed frame. An earlier version of this note flagged the opposite
+convention as an open factor-$2.1$ risk; that is now closed. The $12\,$cm shift
+itself matters little --- across the four possible directions $F_{\rm flux}$
+spans only $0.90$--$1.17$.
 
 \subsection{Monte Carlo samples}
 Two POWHEG\,+\,Pythia8 productions differing \emph{only} in the charm PDF:
@@ -170,19 +184,19 @@ Table~\ref{tab:chain} gives the chain at Run 4 nominal conditions.
 \toprule
 Stage & 3DCal only & $+$AHCAL & Fraction \\
 \midrule
-Muon DIS in fiducial volume & 373\,601 & 2\,503\,837 & $100\%$ \\
-\quad containing charm & 10\,578 & 71\,489 & $2.86\%$ \\
-\quad charm $\to$ semileptonic $\mu$ & 1\,866 & 12\,613 & $17.6\%$ of charm \\
-\quad $\mu$ punches out of calorimeter & 1\,523 & 10\,301 & $81.7\%$ \\
-\quad reaches spectrometer ($43\%$) & 666 & 4\,509 & $43\%$ \\
-\quad identified $+$ linked ($\varepsilon=0.9$) & \textbf{599} & \textbf{4\,058} & $0.16\%$ of DIS \\
+Muon DIS in fiducial volume & 428\,084 & 2\,868\,980 & $100\%$ \\
+\quad containing charm & 12\,120 & 81\,900 & $2.86\%$ \\
+\quad charm $\to$ semileptonic $\mu$ & 2\,138 & 14\,445 & $17.6\%$ of charm \\
+\quad $\mu$ punches out of calorimeter & 1\,745 & 11\,800 & $81.7\%$ \\
+\quad reaches spectrometer ($43\%$) & 762 & 5\,167 & $43\%$ \\
+\quad identified $+$ linked ($\varepsilon=0.9$) & \textbf{686} & \textbf{4\,650} & $0.16\%$ of DIS \\
 \midrule
 Charge-tag purity & \multicolumn{2}{c}{$99.1\%$} & CDR Sec.~2.6.2 \\
-Statistical reach $\sigma(A_c)$ & $0.041$ & $0.016$ & \\
+Statistical reach $\sigma(A_c)$ & $0.038$ & $0.015$ & \\
 \bottomrule
 \end{tabular}
 \caption{Muon-DIS charm chain, Run 4 ($780\fb$), 3DCal with 1\,mm W per module,
-fiducial $z<1150\,$mm ($277\,$kg), $F_{\rm flux}=0.96$, $F_{\rm optics}=2.0$.}
+fiducial $z<1150\,$mm ($277\,$kg), $F_{\rm flux}=1.10$, $F_{\rm optics}=2.0$.}
 \label{tab:chain}
 \end{table}
 
@@ -200,23 +214,72 @@ corresponds to a $\theta<8.7\,$mrad cone. Charge identification is
 \emph{not} a bottleneck: with a median decay-muon momentum of $11.5\GeV$, the
 CDR misidentification is $<0.7\%$.
 
-\subsection{Absorber and AHCAL options}
+\subsection{Absorber options}
 \begin{center}\small
 \begin{tabular}{lrrr}
 \toprule
-Configuration & Fiducial mass & Tagged & $\sigma(A_c)$ \\
+Absorber & Fiducial mass & Tagged & $\sigma(A_c)$ \\
 \midrule
-1\,mm W / module (baseline) & 277\,kg & 599 & 0.041 \\
-5\,mm W / module & 421\,kg & 901 & 0.033 \\
-10\,mm W / module & 514\,kg & 1102 & 0.030 \\
-$+$ AHCAL (1.60\,t fiducial, $\sim\!98\%$ Fe) & 1\,877\,kg & 4\,058 & 0.016 \\
+1\,mm W / module (baseline) & 277\,kg & 686 & 0.038 \\
+5\,mm W / module & 421\,kg & 1032 & 0.031 \\
+10\,mm W / module & 514\,kg & 1262 & 0.028 \\
 \bottomrule
 \end{tabular}
 \end{center}
-The AHCAL adds $5.8\times$ the 3DCal target mass. Its $4\times4\,$cm$^2$
-granularity makes vertex finding and muon linking harder, so its curve should be
-read at a \emph{lower} identification efficiency --- which is why the main
-result is presented against $\varepsilon$ rather than at a fixed value.
+
+\subsection{Using the ECAL and AHCAL as active target volumes}
+\label{sec:ecalahcal}
+
+The 3DCal is only $277\,$kg of fiducial target. The calorimeters behind it are
+far more massive, and --- being sampling calorimeters --- interactions in their
+\emph{absorber} are measured too, so their whole mass counts as target.
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{lrrrrr}
+\toprule
+Configuration & Fiducial mass & Muon DIS & Charm & Tagged & $\sigma(A_c)$ \\
+\midrule
+3DCal only & $277\,$kg & 428\,084 & 12\,120 & 686 & $0.038$ \\
+3DCal $+$ ECAL & $1\,047\,$kg & 1\,593\,387 & 45\,130 & 2\,602 & $0.020$ \\
+3DCal $+$ AHCAL & $1\,874\,$kg & 2\,868\,980 & 81\,900 & 4\,650 & $0.015$ \\
+\textbf{3DCal $+$ ECAL $+$ AHCAL} & $\mathbf{2\,644\,}$\textbf{kg} & \textbf{4\,034\,283} & \textbf{115\,300} & \textbf{6\,566} & $\mathbf{0.012}$ \\
+\bottomrule
+\end{tabular}
+\caption{Adding the downstream calorimeters as target volumes. Masses are
+fiducial; all rows use $\varepsilon=0.9$, which is \emph{not} appropriate for the
+coarser detectors --- see the caveat below.}
+\label{tab:volumes}
+\end{table}
+
+Using the full stack gives a $9.5\times$ larger target than the 3DCal alone and
+improves the statistical reach by $\times3.2$. Material composition is handled
+per volume: the ECAL is $92\%$ lead ($w_p=0.396$), the AHCAL $98\%$ iron
+($w_p=0.464$), against polystyrene ($w_p=0.538$) in the 3DCal.
+
+\paragraph{Two caveats, and they are not small.}
+\begin{enumerate}
+  \item \textbf{Granularity.} The 3DCal has $1\times1\,$cm$^2$ transverse cells,
+        the AHCAL $4\times4\,$cm$^2$, the ECAL $12\times12\,$cm$^2$ --- a factor
+        $144$ between the extremes. Vertex finding and muon-to-vertex linking
+        degrade accordingly, so \textbf{Table~\ref{tab:volumes} should not be
+        read at a common $\varepsilon$}: the ECAL and AHCAL rows belong at a
+        substantially lower identification efficiency than the 3DCal row. This is
+        precisely why the main result is presented \emph{against} $\varepsilon$
+        rather than at a fixed value.
+  \item \textbf{Containment.} The ECAL is only $\sim\!0.7$ interaction lengths
+        deep and cannot contain a hadronic shower by itself. It does however sit
+        \emph{upstream} of the AHCAL, which provides $\sim\!5\lambda$ behind it,
+        so it is given full fiducial acceptance here while the AHCAL --- the last
+        calorimeter --- keeps the $48\%$ of CDR Table 8. That asymmetry is a
+        modelling choice, not a documented one.
+\end{enumerate}
+
+\noindent
+The honest summary is that the extra mass is real and large, but it buys
+statistics in the detector volumes where the \emph{tag} is weakest. Whether it is
+a net gain depends on how fast $\varepsilon$ falls with cell size --- a question
+only a full reconstruction can answer.
 
 %======================================================================
 \section{The charm/anticharm asymmetry is not a usable observable}
@@ -799,8 +862,10 @@ $-10\%$ on JB and negligible on $\Sigma$.
 Question & Answer \\
 \midrule
 How many tagged charm events? &
-$599$ charge-signed, vertex-linked charm muons in the 3DCal
-($4058$ including the AHCAL) at $780\fb$. \\[3pt]
+$686$ charge-signed, vertex-linked charm muons in the 3DCal alone at $780\fb$;
+$2602$ adding the ECAL, $4650$ adding the AHCAL, $6566$ using all three
+($\sigma(A_c)$ improving $0.038\to0.012$). The extra volumes are coarser, so
+those rows belong at lower $\varepsilon$ (Sec.~\ref{sec:ecalahcal}). \\[3pt]
 Is charm/anticharm separable? &
 Yes in principle --- the decay-muon charge \emph{is} the charm sign, and the CDR
 spectrometer misidentifies $<0.7\%$ --- but the reach is

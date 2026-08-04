@@ -62,6 +62,8 @@ COMPOSITION = {
     # Fe-56: 26 protons, 30 neutrons.  Needed for the AHCAL, whose mass is
     # dominated by its steel absorber.
     "iron":            dict(w_p=26.0 / 56.0,  w_n=30.0 / 56.0,   rho=7.87),
+    # Pb-207: 82 protons, 125 neutrons.  The ECAL is ~92% lead by mass.
+    "lead":            dict(w_p=82.0 / 207.0, w_n=125.0 / 207.0, rho=11.35),
 }
 
 # ------------------------------------------------------------------- geometry
@@ -100,24 +102,28 @@ M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
 # So going off-axis can INCREASE the muon-DIS yield.  A plausible working range
 # is ~0.3 (shielded/vertical) to ~10 (horizontal, beam-pipe side).
 #
-# RESOLVED.  The detector sits on the LEFT of the LoS looking downstream from
-# the production point (user, 2026-08).  In the standard right-handed frame
-# (+z downstream, +y up, x_hat x y_hat = z_hat) a viewer looking along +z with
-# +y up has right_hat = -x_hat, so LEFT = +x.  The designed shift is therefore
-# (+452, +236) mm, and the FLUKA map (python/fluka_offaxis_map.py, source
-# /eos/experiment/fasernu-data0/faser/sim/mc22/fluka/210007/bck/s0010-r0019)
-# evaluated over the 480x480 mm 3DCAL face at that point gives
+# RESOLVED, and now CONFIRMED against the FLUKA convention.
+# The detector sits on the LEFT of the LoS looking downstream, which in the
+# standard right-handed frame (+z downstream, +y up) means +x -- and the FLUKA
+# coordinate system has been confirmed to place FASERCal at POSITIVE x (user,
+# 2026-08).  The earlier caveat that this might be reversed, worth a factor 2.1,
+# is therefore CLOSED.
 #
-#     F_flux = 0.96 ,  <p_mu> = 985 GeV ,  mu+ fraction = 0.25
+# Position: the CDR/talk shift is (452, 236) mm, plus a further 12 cm reported by
+# the collaboration, giving (572, 236) mm.  The FLUKA map over the 480x480 mm
+# 3DCAL face there gives
 #
-# i.e. essentially the SAME flux as on-axis -- the conservative branch.  (The
-# mirror position (-452,+236) would have given F = 2.02 with a mu+-enriched,
-# harder beam; that is the lobe the detector does NOT sit in.)
+#     F_flux = 1.10 ,  <p_mu> = 1188 GeV ,  mu+ fraction = 0.18
 #
-# Remaining assumption: that the FLUKA ntuple's truth_prod_x uses the same
-# right-handed FASER/ATLAS convention.  If its x axis were defined with the
-# opposite sign, F_flux would be 2.02 instead of 0.96 -- a factor 2.1 on every
-# absolute yield.  One line to confirm.
+# The 12 cm shift matters little: across the four possible directions F_flux
+# spans only 0.90-1.17, so the conclusion is insensitive to which axis it is on.
+#
+#     position (mm)      F_flux
+#     (452, 236) CDR       0.96
+#     (572, 236) +12 x     1.10   <- used
+#     (332, 236) -12 x     0.97
+#     (452, 356) +12 y     1.17
+#     (452, 116) -12 y     0.90
 #
 # Full transverse map, F_flux for a FASERnu-sized window at (x0,y0) cm:
 #        y0=0    y0=+50  y0=+100        <p> [GeV]      mu+ fraction
@@ -126,9 +132,8 @@ M_REF_T = 25.0 * 30.0 * 50.0 * 19.30 / 1.0e6     # = 0.724 t
 #   x0= -50  1.88   2.99    1.76          1969            0.78
 #   x0=-100  3.89   4.94    2.43          2079            0.74
 # The flux RISES off-axis on the -x side (magnetic sweeping) and the lobes are
-# charge-separated; the +x side, where FASERCal sits, is close to the on-axis
-# value.
-F_FLUX = 0.96                    # measured at the designed (+452,+236) mm
+# charge-separated; the +x side, where FASERCal sits, is close to on-axis.
+F_FLUX = 1.10                    # measured at (+572,+236) mm
 
 # ------------------------------------------------------- Run 4 beam optics
 # The muon flux does NOT simply scale with luminosity from Run 3 to Run 4: the
@@ -160,7 +165,7 @@ F_FLUX = 0.96                    # measured at the designed (+452,+236) mm
 #     fraction rise with E_mu, so a pure rate rescaling under-counts the gain.
 # Set F_OPTICS = 1.0 to recover pure luminosity scaling (the previous behaviour).
 F_OPTICS = 2.0
-F_FLUX_RANGE = (0.96, 2.02)   # FASERCal position, and its mirror
+F_FLUX_RANGE = (0.90, 1.17)   # spread over the possible 12 cm shift directions
 
 # --------------------------------------------------- detector response (toy)
 # The Run 4 TP Sec. 6.5/6.6 (spectrometer magnet, muon tracker) are empty, so
@@ -271,7 +276,7 @@ def smeared_theta(d, geo, rng):
 
 def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
                    rng=None, f_flux=F_FLUX, include_ahcal=False,
-                   f_optics=None):
+                   include_ecal=False, f_optics=None):
     """
     Full chain for a sampling geometry with `t_w_cm` tungsten per layer.
 
@@ -293,6 +298,10 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     # the whole mass counts -- ~98% of it iron.  Its coarse 4x4 cm^2 granularity
     # makes vertex finding and muon linking harder, which enters as a lower
     # identification+linking efficiency, not modelled here (see the eff scan).
+    if include_ecal:
+        e = G.ecal_config()
+        w = w + (yield_per_tonne(d, "lead", lumi, f_flux, f_optics) * e["m_pb"]
+                 + yield_per_tonne(d, "scintillator_CH", lumi, f_flux, f_optics) * e["m_sc"])
     if include_ahcal:
         a = G.ahcal_config()
         w = w + (yield_per_tonne(d, "iron", lumi, f_flux, f_optics) * a["m_fe"]
@@ -328,6 +337,7 @@ def chain_scenario(d, t_w_cm, params=None, lumi=LUMI_RUN4, cone=None,
     med_p = float(np.median(mu_p[has_mu & (mu_p > 0)]))
     return dict(
         geo=geo, t_w_cm=t_w_cm, f_flux=f_flux, include_ahcal=include_ahcal,
+        include_ecal=include_ecal,
         n_dis=n_dis, n_charm=n_charm, n_semi=n_semi,
         n_punch=n_punch, n_acc=n_acc, n_tag=n_tag,
         f_charm=n_charm / n_dis if n_dis else 0.0,

@@ -51,7 +51,7 @@ LAYERS_PER_MODULE = 20
 CUBE_CM = 1.0             # 1 cm^3 scintillating cubes
 
 # Position of the detector relative to the nominal line of sight (mm)
-LOS_SHIFT_X_MM = 452.0
+LOS_SHIFT_X_MM = 572.0   # CDR/talk 452 mm + a further 12 cm (user, 2026-08)
 LOS_SHIFT_Y_MM = 236.0
 TILT_DEG = 4.5
 
@@ -166,6 +166,43 @@ AHCAL = dict(
     n_layers=40, fe_cm=2.0, sc_cm=0.3, face_cm=72.0,
     rho_fe=7.87, rho_sc=1.02,
 )
+
+
+# ---------------------------------------------------------------------------
+# ECAL, as a further optional target volume.
+#
+# Bern talk: 770 kg, 40 layers of 0.3 cm Pb + 0.3 cm scintillator.  (CDR Table 3
+# instead says 66 layers of 2 mm Pb + 4 mm scintillator with 12x12 cm^2
+# granularity; per the resolution rule the talk wins on the mass.)  That layer
+# structure reproduces a 72 x 72 cm face -- the same as the AHCAL -- and ~21 X0,
+# consistent with the CDR's "about 18 radiation lengths", so the two documents
+# are describing the same object.
+#
+# The ECAL is ~92% LEAD by mass (Pb-207: 82 p, 125 n -> w_p = 0.396).
+#
+# TWO CAVEATS, both worse than for the AHCAL:
+#   * granularity is 12x12 cm^2 -- 9x coarser than the AHCAL and 144x coarser
+#     than the 3DCAL -- so vertex finding and muon-to-vertex linking are harder
+#     still, i.e. a yet lower identification efficiency;
+#   * it is only ~0.7 interaction lengths deep, so it cannot contain a hadronic
+#     shower by itself.  It does however sit UPSTREAM of the AHCAL (the layout
+#     is 3DCAL -> ECAL -> AHCAL -> spectrometer), so an interaction in the ECAL
+#     has the AHCAL's ~5 lambda behind it for containment.  For that reason the
+#     ECAL is given full fiducial acceptance while the AHCAL, which is the last
+#     calorimeter, keeps the 48% of CDR Table 8.
+ECAL = dict(n_layers=40, pb_cm=0.3, sc_cm=0.3, face_cm=72.0,
+            rho_pb=11.35, rho_sc=1.02, mass_kg=770.0)
+
+
+def ecal_config(fiducial_frac=1.0):
+    """ECAL target mass, split by material.  See the note above on fiducial_frac."""
+    e = ECAL
+    f_pb = (e["pb_cm"] * e["rho_pb"]) / (e["pb_cm"] * e["rho_pb"]
+                                         + e["sc_cm"] * e["rho_sc"])
+    m_tot = e["mass_kg"] / 1.0e3 * fiducial_frac
+    return dict(m_pb=m_tot * f_pb, m_sc=m_tot * (1 - f_pb), m_tot=m_tot,
+                m_full_t=e["mass_kg"] / 1.0e3, f_pb=f_pb,
+                f_fiducial=fiducial_frac)
 
 
 def ahcal_config(fiducial_frac=0.48):

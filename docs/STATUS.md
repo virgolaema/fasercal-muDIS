@@ -14,7 +14,7 @@ assumptions with designed values — and corrected several of them substantially
 
 Run 4 at **780 fb⁻¹** (FASERCal's own nominal), **3DCAL only** (AHCAL excluded),
 as-designed geometry, **1 mm W baseline**, fiducial z < 1150 mm,
-F_flux = 0.96 (measured), **F_optics = 2.0** (Run 4 beam optics, see below),
+F_flux = 1.10 (measured at the confirmed position), **F_optics = 2.0** (Run 4 beam optics, see below),
 identification+linking efficiency ε = 0.9:
 
 | stage | 3DCAL only | + AHCAL | fraction |
@@ -283,7 +283,6 @@ Much shorter than before — the talk resolved most of it.
 
 | # | need | why it matters |
 |---|---|---|
-| **1** | One-line confirmation that the FLUKA ntuple's `truth_prod_x` is the standard right-handed FASER/ATLAS x (so that "left looking downstream" = +x) | if reversed, every yield ×2.1 |
 | **3** | Hadronic energy / jet resolution for **3DCAL alone** — the talk gives them for the full 3DCAL+ECAL+AHCAL+MuSpect chain (p_jet: bias 9 %, res 9 % for NC) | needed for the x-reconstruction study; if AHCAL is excluded the resolution will be worse |
 | **4** | Confirmation that muon DIS should use 3DCAL only, or 3DCAL+ECAL+AHCAL | the talk's own numbers show AHCAL has 3.3 t vs 3DCAL's 0.5 t — a **6× larger** target |
 
