@@ -566,6 +566,113 @@ energy is measured --- lepton-only and double-angle do not exist without it.}
 \label{fig:effpur}
 \end{figure}
 
+
+%======================================================================
+\section{Is $A_c(x)$ measurable at large $x$? No --- and not for statistical reasons}
+\label{sec:acx}
+
+Section~\ref{sec:asym} showed that $A_c$ integrated over $x$ is zero in the
+available PDF sets. That is however not the end of the theoretical story:
+\emph{meson-cloud} models, in which the proton fluctuates to
+$|\Lambda_c^+ \bar{D}^0\rangle$ rather than to a minimal five-quark state, do
+predict $c(x)\neq\bar{c}(x)$. The $c$ ends up in the baryon and the $\bar{c}$ in
+the meson; their different masses give different momentum fractions. This is the
+mechanism behind the recently proposed $D^+/D^-$ asymmetry
+observable~\cite{lykasov}.
+
+\paragraph{The predicted signal.} Using the Pumplin--Lai--Tung meson-cloudy-bag
+parametrisation employed in Ref.~\cite{lykasov},
+$f_c(x)\propto x^{1.897}(1-x)^{6.095}$ and
+$f_{\bar c}(x)\propto x^{2.5}(1-x)^{4.929}$, normalised by the quark-number sum
+rule, and diluting by the symmetric perturbative charm using our own
+fitted/perturbative ratios:
+
+\begin{center}\small
+\begin{tabular}{lrrrrr}
+\toprule
+$x$ & 0.25 & 0.35 & 0.45 & 0.55 & 0.70 \\
+\midrule
+$A_{\rm IC}(x)$ & $+0.129$ & $-0.055$ & $-0.224$ & $-0.384$ & $-0.613$ \\
+IC fraction & 0.58 & 0.76 & 0.87 & 0.93 & 0.98 \\
+\textbf{observable $A(x)$} & $+0.075$ & $-0.042$ & $-0.196$ & $-0.359$ & $-0.600$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+The asymmetry \textbf{changes sign at $x=0.318$} and reaches $-0.6$ at $x=0.7$.
+Two things follow immediately. First, this \emph{explains} the null result of
+Sec.~\ref{sec:asym} rather than contradicting it: integrated over $x$ the
+asymmetry cancels by construction (the sum rule $\int(c-\bar{c})dx=0$), so an
+inclusive $A_c\approx0$ is exactly what the theory predicts. Second, at
+$x\gtrsim0.5$ the predicted signal ($-0.36$ to $-0.60$) is 5--10 times larger
+than the fragmentation-induced background of Sec.~\ref{sec:asym} ($-0.06$), so
+the signal-to-background in the large-$x$ bins would be favourable.
+
+\paragraph{But the tag and the signal region are kinematically incompatible.}
+We therefore evaluated the tagged yield differentially in $x$. The result is
+unambiguous and does not depend on any statistical argument:
+
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{lrrrrr}
+\toprule
+True $x$ & Charm events & with semilept.\ $\mu$ & punch through & \textbf{accepted} & acceptance \\
+\midrule
+$0.00$--$0.05$ & 140\,057 & 25\,483 & 21\,929 & 6\,169 & $4.40\%$ \\
+$0.05$--$0.10$ & 10\,530 & 1\,797 & 1\,148 & 38 & $0.36\%$ \\
+$0.10$--$0.20$ & 6\,942 & 1\,140 & 558 & 5 & $0.07\%$ \\
+$0.20$--$0.32$ & 4\,583 & 726 & 285 & 1 & $0.02\%$ \\
+$0.32$--$0.50$ & 2\,684 & 401 & 165 & \textbf{0} & $\mathbf{0.00\%}$ \\
+$0.50$--$1.00$ & 299 & 51 & 28 & \textbf{0} & $\mathbf{0.00\%}$ \\
+\bottomrule
+\end{tabular}
+\caption{Raw Monte Carlo counts through the charm tag, versus true $\xB$
+(25 seeds, $1.9\times10^6$ events). Of 6\,213 events passing the full tag,
+\textbf{not one} has $\xB\geq0.32$.}
+\label{tab:acceptance}
+\end{table}
+
+The mechanism is simple. Large $\xB$ means small $\nu$ at fixed $Q^2$, so the
+hadronic system --- and hence the charm --- is produced with little energy. The
+semileptonic decay muon is correspondingly soft and wide-angle:
+\begin{center}\small
+\begin{tabular}{lrr}
+\toprule
+& $\xB<0.1$ & $\xB\geq0.32$ \\
+\midrule
+decay-muon median $p$ & $13.1\GeV$ & $1.9\GeV$ \\
+decay-muon median $\theta$ & $29\,$mrad & $257\,$mrad \\
+\midrule
+\multicolumn{3}{c}{spectrometer acceptance cone: $9.9\,$mrad} \\
+\bottomrule
+\end{tabular}
+\end{center}
+A $257\,$mrad muon cannot enter a $9.9\,$mrad cone. \textbf{The dimuon charm
+charge-tag and the large-$\xB$ signal region are mutually exclusive.}
+
+\paragraph{Consequence.} A dedicated production with an artificially asymmetric
+charm PDF was considered and \textbf{not} performed: it would change the
+generated $c/\bar{c}$ content but not the acceptance, so the tagged yield above
+$x=0.32$ would remain zero. The handful of events reconstructed at large
+$x_{\rm reco}$ (5--9 raw MC events per bin) are migrated low-$x$ events --- their
+median \emph{true} $\xB$ is $0.01$ --- carrying no asymmetry.
+
+\paragraph{What this does and does not kill.}
+\begin{itemize}
+  \item \textbf{$A_c(x)$ at large $x$ is not measurable} with the dimuon tag in
+        this configuration. Measuring it requires a charm tag that does not
+        demand the decay muon in the spectrometer.
+  \item \textbf{The large-$x$ charm \emph{rate} measurement is unaffected.} It
+        needs no charge information, hence no decay muon in the spectrometer,
+        and it is the subject of Sec.~\ref{sec:xreco}. That result stands.
+  \item The natural alternative for large-$x$ charm is the
+        \textbf{charm-to-hadrons} channel, which the FASER\emph{Cal} ML tagger
+        already addresses ($21\%$ efficiency at $82\%$ purity for $c\to H$ in
+        neutrino events). It gives no charge information --- so it can measure
+        the large-$x$ excess but not the asymmetry.
+\end{itemize}
+
 %======================================================================
 \section{Systematic uncertainties --- NOT included}
 \label{sec:syst}
@@ -724,6 +831,12 @@ the visible energy. \\[3pt]
 What most improves the measurement? &
 The \textbf{muon momentum resolution}. Going from $100$ to $50\,\mu$m SciFi
 pitch improves the combined selection by $16\%$. \\[3pt]
+Is $A_c(x)$ measurable at large $x$? &
+\textbf{No}, and for a kinematic not a statistical reason: of 6213 tagged MC
+events, none has $\xB\geq0.32$. Large $\xB$ implies small $\nu$, hence a soft
+($1.9\GeV$) wide-angle ($257\,$mrad) decay muon that cannot enter the $9.9\,$mrad
+spectrometer cone. The tag and the signal region are mutually exclusive
+(Sec.~\ref{sec:acx}). \\[3pt]
 Are systematics included? &
 \note{No. Nothing in this note includes a systematic uncertainty}
 (Sec.~\ref{sec:syst}). PDF uncertainties in particular are entirely absent,
@@ -755,6 +868,12 @@ although the replica weights exist in the LHE files. \\
   ``The FASERCal Conceptual Design Report'', CERN-FASER-NOTE-2026-004, v0,
   16 February 2026.
 \bibitem{talk} ``FASERCal'', FASER Collaboration Meeting, Bern, 15 July 2026.
+\bibitem{lykasov} G.~I.~Lykasov, A.~A.~Sorokovikov and S.~J.~Brodsky,
+  ``Intrinsic charm and the $D^+$--$D^-$ asymmetry produced in proton-proton
+  collisions'', Phys.\ Rev.\ D \textbf{111} (2025) 074035,
+  \href{https://arxiv.org/abs/2501.02507}{arXiv:2501.02507}.
+  Parametrisation originally from J.~Pumplin, H.~L.~Lai and W.~K.~Tung,
+  Phys.\ Rev.\ D \textbf{75} (2007) 054029.
 \bibitem{bassler} U.~Bassler and G.~Bernardi,
   ``On the kinematic reconstruction of deep inelastic scattering at HERA:
   the $\Sigma$ method'', Nucl.\ Instrum.\ Meth.\ A \textbf{361} (1995) 197.

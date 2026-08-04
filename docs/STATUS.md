@@ -181,6 +181,42 @@ re-showering: `e_in`, `E_had`, the hadronic vector and Σ(E−p_z) are all cache
 
 ---
 
+## 2e. A_c(x) at large x is NOT measurable — kinematically, not statistically
+
+Meson-cloud models (unlike minimal BHPS) *do* predict c(x) ≠ c̄(x), peaking near
+x ≈ 0.5–0.7 with an observable asymmetry of −0.36 to −0.60 and a **sign change at
+x = 0.318** — which incidentally *explains* the inclusive null result, since the
+sum rule forces the integral to cancel.
+
+We evaluated whether FASERcal could see it. **It cannot**, and the reason is
+kinematic:
+
+| true x | charm evts | semilept. µ | punch through | **accepted** |
+|---|---:|---:|---:|---:|
+| 0.00–0.05 | 140 057 | 25 483 | 21 929 | 6 169 (4.4 %) |
+| 0.10–0.20 | 6 942 | 1 140 | 558 | 5 (0.07 %) |
+| 0.20–0.32 | 4 583 | 726 | 285 | 1 (0.02 %) |
+| **0.32–0.50** | 2 684 | 401 | 165 | **0** |
+| **0.50–1.00** | 299 | 51 | 28 | **0** |
+
+**Of 6 213 tagged MC events, not one has x ≥ 0.32.** Large x means small ν, so the
+charm is soft and the decay muon is soft and wide-angle — median **1.9 GeV** and
+**257 mrad** at x ≥ 0.32, against a **9.9 mrad** acceptance cone (vs 13.1 GeV and
+29 mrad at low x). **The dimuon charge-tag and the large-x signal region are
+mutually exclusive.**
+
+A dedicated asymmetric-charm-PDF production was therefore **considered and not
+run**: it would change the generated c/c̄ content but not the acceptance, so the
+tagged yield above x = 0.32 would still be zero.
+
+**What this does not kill:** the large-x charm *rate* measurement needs no charge
+information, hence no decay muon in the spectrometer — §2c stands. The natural
+route to large-x charm is the **c→hadrons** channel (the FASERcal ML tagger
+already does it, 21 % eff / 82 % purity), which measures the excess but gives no
+asymmetry.
+
+---
+
 ## 3. Key physics findings
 
 1. **The chain is branching-limited, not detector-limited.** 2.83 % × 17.6 % ≈ 200× attrition before any detector effect.
