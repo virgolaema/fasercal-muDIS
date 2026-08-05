@@ -716,13 +716,48 @@ IC fraction & 0.58 & 0.76 & 0.87 & 0.93 & 0.98 \\
 
 \noindent
 The asymmetry \textbf{changes sign at $x=0.318$} and reaches $-0.6$ at $x=0.7$.
-Two things follow immediately. First, this \emph{explains} the null result of
-Sec.~\ref{sec:asym} rather than contradicting it: integrated over $x$ the
-asymmetry cancels by construction (the sum rule $\int(c-\bar{c})dx=0$), so an
-inclusive $A_c\approx0$ is exactly what the theory predicts. Second, at
-$x\gtrsim0.5$ the predicted signal ($-0.36$ to $-0.60$) is 5--10 times larger
-than the fragmentation-induced background of Sec.~\ref{sec:asym} ($-0.06$), so
-the signal-to-background in the large-$x$ bins would be favourable.
+This \emph{explains} the null result of Sec.~\ref{sec:asym} rather than
+contradicting it: integrated over $x$ the asymmetry cancels by construction
+(the sum rule $\int(c-\bar{c})dx=0$), so an inclusive $A_c\approx0$ is exactly
+what the theory predicts.
+
+\paragraph{The fragmentation background is NOT small at large $x$.} An earlier
+version of this note compared the predicted signal against the \emph{inclusive}
+fragmentation asymmetry ($-0.06$) and concluded the signal-to-background at
+large $x$ would be favourable by a factor 5--10. That was wrong: the
+fragmentation asymmetry itself grows with $x$. Measured directly in the
+generated events, at truth level, using the sign of the charm hadron that
+produced the semileptonic muon:
+
+\begin{center}\small
+\begin{tabular}{lrrr}
+\toprule
+truth $x$ & $A$ (fragmentation, this MC) & $A$ (IC, predicted) & $|S/B|$ \\
+\midrule
+$0.2$--$0.3$ & $-0.213$ & $+0.075$ & $0.4$ \\
+$0.3$--$0.4$ & $-0.219$ & $-0.042$ & $0.2$ \\
+$0.4$--$0.5$ & $-0.030$ & $-0.196$ & $6.6$ \\
+$0.5$--$0.6$ & $-0.314$ & $-0.359$ & $1.1$ \\
+\midrule
+$x>0.2$ (integrated) & $\mathbf{-0.198\pm0.035}$ ($5.7\sigma$) & --- & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{The generated events show a highly significant $c/\bar{c}$ asymmetry at
+$x>0.2$ ($A=-0.198$, $5.7\sigma$) even though the input PDF has
+$c=\bar{c}$ exactly.} It is therefore entirely fragmentation --- the
+leading-baryon effect of Sec.~\ref{sec:asym}, which strengthens at large $x$
+where the struck quark carries most of the nucleon momentum and the remnant
+diquark is readily available to form a $\Lambda_c$. It has the \emph{same sign}
+as the predicted intrinsic-charm signal and is comparable in magnitude up to
+$x\sim0.5$, so $|S/B|\sim1$ over much of the interesting range rather than the
+5--10 claimed before.
+
+This is a direct answer to a question put by A.~Rubbia --- ``in your generated
+events, can you check whether there really is a $c/\bar{c}$ asymmetry at
+truth $x>0.2$?'' --- and the answer is yes, but it is a background, not a signal.
 
 \paragraph{But the tag and the signal region are kinematically incompatible.}
 We therefore evaluated the tagged yield differentially in $x$. The result is
@@ -858,9 +893,17 @@ most effective detector change for this measurement.
         $\nu$ and hence $\xB$, and on a steeply falling spectrum a few-percent
         scale error can move the $\xB\geq0.2$ yield substantially. This should
         be evaluated.
-  \item \textbf{Hadronisation model.} The $\Lambda_c/\bar{\Lambda}_c=6.8$
-        leading-baryon effect, which drives the fragmentation asymmetry of
-        Sec.~\ref{sec:asym}, is Pythia-specific and is not varied.
+  \item \textbf{Hadronisation model --- now a leading systematic.} The
+        $\Lambda_c/\bar{\Lambda}_c=6.8$ leading-baryon effect drives a
+        fragmentation asymmetry of $-0.198$ at $x>0.2$ (Sec.~\ref{sec:acx}),
+        comparable to the intrinsic-charm signal itself and of the same sign.
+        It is Pythia-specific and is not varied here. Any future $A_c(x)$
+        measurement is limited by how well this is modelled, not by statistics.
+  \item \textbf{The predicted IC asymmetry is second-hand.} The
+        Pumplin--Lai--Tung parametrisation used above was taken from a summary
+        of Ref.~\cite{lykasov} rather than read off the paper's own figures. The
+        numbers should be checked against Figs.~2--3 of that reference before
+        being quoted.
   \item \textbf{Nuclear effects.} Free-nucleon PDFs are used; no nuclear
         modification is applied for carbon or tungsten.
   \item \textbf{Detector modelling.} No reconstruction simulation: no voxel
