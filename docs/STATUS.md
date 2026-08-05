@@ -19,13 +19,24 @@ identification+linking efficiency ε = 0.9:
 
 | stage | 3DCAL only | + AHCAL | fraction |
 |---|---:|---:|---|
-| Muon DIS in fiducial volume | **373 655** | **2 504 165** | 100 % |
-| … containing charm | 10 580 | 71 546 | 2.83 % |
-| … charm → semileptonic µ | 1 856 | 12 551 | 17.6 % of charm |
-| … µ punches out | 1 529 | 10 341 | 82.4 % |
-| … reaches spectrometer (43 %) | 657 | 4 447 | 43 % |
-| … identified + linked (ε = 0.9) | **590** | **3 992** | **0.158 % of DIS** |
-| **σ(A_c)** | **0.041** | **0.016** | |
+| Muon DIS in the target volume | **897 115** | **5 982 315** | 100 % |
+| … containing charm | 25 400 | 170 804 | 2.86 % |
+| … charm → semileptonic µ | 4 481 | 30 127 | 17.6 % of charm |
+| … µ punches out | 3 657 | 24 600 | 81.7 % |
+| … reaches spectrometer (43 %) | 1 598 | 10 773 | 43 % |
+| … identified + linked (ε = 0.9) | **1 438** | **9 696** | **0.16 % of DIS** |
+| **σ(A_c)** | **0.026** | **0.010** | |
+
+*Full masses — the CDR's "z < 1150 mm" is **not** a containment cut but the
+requirement to be inside the 3DCal, in an older centred coordinate system where
+it retains 97.7 %. Removing the erroneous 48 % roughly doubled all yields.*
+
+| target volume | mass | tagged | σ(A_c) |
+|---|---:|---:|---:|
+| 3DCal only (1 mm W) | 581 kg | 1 438 | 0.026 |
+| + ECAL | 1 351 kg | 3 354 | 0.017 |
+| + AHCAL | 3 908 kg | 9 696 | 0.010 |
+| **+ ECAL + AHCAL** | **4 678 kg** | **11 612** | **0.009** |
 
 Charge-tag purity **99.2 %** (CDR §2.6.2 measured misidentification).
 
@@ -51,11 +62,11 @@ Charge-tag purity **99.2 %** (CDR §2.6.2 measured misidentification).
   3DCAL one — the report plots both against ε precisely so they are not compared
   at the same value.
 
-| absorber | 3DCAL fiducial | σ(A_c) 3DCAL | σ(A_c) +AHCAL |
+| absorber (3DCal only) | mass | tagged | σ(A_c) |
 |---|---:|---:|---:|
-| **1 mm W** (baseline) | 277 kg | 0.041 | **0.016** |
-| 5 mm W | 421 kg | 0.034 | 0.015 |
-| 10 mm W | 514 kg | 0.030 | 0.015 |
+| **1 mm W/module** (baseline) | 581 kg | 1 438 | **0.026** |
+| 5 mm W/module | 896 kg | 2 200 | 0.021 |
+| 10 mm W/module | 1 118 kg | 2 744 | 0.019 |
 
 With the AHCAL included the absorber choice becomes almost irrelevant — the
 AHCAL mass dominates.
@@ -245,7 +256,7 @@ asymmetry.
 | 9 | fiducial mass assumed 1 t | designed **0.514 t** | yields ×0.51 |
 | 10 | luminosity 680 fb⁻¹ (TP print) | **780 fb⁻¹** (FASERCal's own) | yields ×1.15 |
 | 11 | mass computed from first principles (514 kg) | **CDR Table 5: 581 kg** | ×1.13 — my calc omitted Al enclosures, WLS fibres, glue, Tyvek |
-| 12 | no fiducial cut | **z < 1150 mm (CDR Table 8)** | **×0.48** — the dominant new effect |
+| 12 | ~~z < 1150 mm read as a containment cut (×0.48)~~ | **no fiducial reduction** — the cut just means "inside the 3DCal", in an older centred frame where it keeps 97.7 % | yields **×2.1** back up |
 | 13 | toy charge-confusion sigmoid | **CDR §2.6.2 measured**: 0.7 % below 100 GeV | purity 97.3 % → **99.2 %** — the real spectrometer is *better* than my toy |
 | 14 | flux scaled by luminosity alone | **× F_optics = 2.0** (CDR §1.3.2) | yields **×2** |
 | 15 | 3DCAL only | **+ AHCAL option** (1.60 t fiducial, ~98 % Fe) | DIS rate **×6.7**, σ(A_c) 0.041 → **0.016** |

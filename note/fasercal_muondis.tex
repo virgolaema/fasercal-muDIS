@@ -97,7 +97,7 @@ Run 4 luminosity & $780\fb$ & FASER\emph{Cal} talk; CDR Sec.~3.1 \\
 3DCal transverse face & $48\times48\,$cm$^2$ & talk slide 11 \\
 Tungsten absorber & 1, 5 or 10\,mm \emph{per module} & talk slide 39; CDR Table 5 \\
 3DCal total mass & 581 / 896 / 1118\,kg & CDR Table 5 \\
-Fiducial region & $z<1150\,$mm ($48\%$ of length) & CDR Table 8 \\
+Fiducial cut & \emph{none} --- full masses (see below) & CDR Table 8, reinterpreted \\
 Position & LoS shift $(572,236)\,$mm, tilt $4.5^\circ$ & talk $+$ 12\,cm (collab.) \\
 Muon momentum resolution & $20/22.8/29/63.1\%$ at $20/100/200/1000\GeV$ & CDR Sec.~2.6.2 \\
 Charge misidentification & $<0.7\%$ below $100\GeV$; $2$--$5\%$ at TeV & CDR Sec.~2.6.2 \\
@@ -184,19 +184,21 @@ Table~\ref{tab:chain} gives the chain at Run 4 nominal conditions.
 \toprule
 Stage & 3DCal only & $+$AHCAL & Fraction \\
 \midrule
-Muon DIS in fiducial volume & 428\,084 & 2\,868\,980 & $100\%$ \\
-\quad containing charm & 12\,120 & 81\,900 & $2.86\%$ \\
-\quad charm $\to$ semileptonic $\mu$ & 2\,138 & 14\,445 & $17.6\%$ of charm \\
-\quad $\mu$ punches out of calorimeter & 1\,745 & 11\,800 & $81.7\%$ \\
-\quad reaches spectrometer ($43\%$) & 762 & 5\,167 & $43\%$ \\
-\quad identified $+$ linked ($\varepsilon=0.9$) & \textbf{686} & \textbf{4\,650} & $0.16\%$ of DIS \\
+Muon DIS in the target volume & 897\,115 & 5\,982\,315 & $100\%$ \\
+\quad containing charm & 25\,400 & 170\,804 & $2.86\%$ \\
+\quad charm $\to$ semileptonic $\mu$ & 4\,481 & 30\,127 & $17.6\%$ of charm \\
+\quad $\mu$ punches out of calorimeter & 3\,657 & 24\,600 & $81.7\%$ \\
+\quad reaches spectrometer ($43\%$) & 1\,598 & 10\,773 & $43\%$ \\
+\quad identified $+$ linked ($\varepsilon=0.9$) & \textbf{1\,438} & \textbf{9\,696} & $0.16\%$ of DIS \\
 \midrule
 Charge-tag purity & \multicolumn{2}{c}{$99.1\%$} & CDR Sec.~2.6.2 \\
-Statistical reach $\sigma(A_c)$ & $0.038$ & $0.015$ & \\
+Statistical reach $\sigma(A_c)$ & $0.026$ & $0.010$ & \\
 \bottomrule
 \end{tabular}
 \caption{Muon-DIS charm chain, Run 4 ($780\fb$), 3DCal with 1\,mm W per module,
-fiducial $z<1150\,$mm ($277\,$kg), $F_{\rm flux}=1.10$, $F_{\rm optics}=2.0$.}
+full 3DCal mass ($581\,$kg), $F_{\rm flux}=1.10$, $F_{\rm optics}=2.0$. The
+``$+$AHCAL'' column adds the AHCAL as a second target volume
+(Sec.~\ref{sec:ecalahcal}).}
 \label{tab:chain}
 \end{table}
 
@@ -220,12 +222,23 @@ CDR misidentification is $<0.7\%$.
 \toprule
 Absorber & Fiducial mass & Tagged & $\sigma(A_c)$ \\
 \midrule
-1\,mm W / module (baseline) & 277\,kg & 686 & 0.038 \\
-5\,mm W / module & 421\,kg & 1032 & 0.031 \\
-10\,mm W / module & 514\,kg & 1262 & 0.028 \\
+1\,mm W / module (baseline) & 581\,kg & 1\,438 & 0.026 \\
+5\,mm W / module & 896\,kg & 2\,200 & 0.021 \\
+10\,mm W / module & 1\,118\,kg & 2\,744 & 0.019 \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\paragraph{On the CDR's ``fiducial region $z<1150\,$mm''.} CDR Table 8 quotes
+its rates with this restriction, and an earlier version of this note read it as a
+\emph{containment} cut retaining only the upstream $48\%$ of the $2.41\,$m 3DCal.
+That was wrong. The cut simply requires the interaction to lie inside the 3DCal
+at all, expressed in an older coordinate system whose origin sat at the
+\emph{centre} of the 3DCal: with the origin centred the detector spans
+$\pm1205\,$mm, so $z<1150\,$mm retains $97.7\%$ of it. No fiducial reduction is
+therefore applied here and full masses are used, which roughly \textbf{doubles}
+every absolute yield relative to the previous version of this note. Efficiencies,
+purities and all $x$-reconstruction results are ratios and are unchanged.
 
 \subsection{Using the ECAL and AHCAL as active target volumes}
 \label{sec:ecalahcal}
@@ -240,20 +253,19 @@ far more massive, and --- being sampling calorimeters --- interactions in their
 \toprule
 Configuration & Fiducial mass & Muon DIS & Charm & Tagged & $\sigma(A_c)$ \\
 \midrule
-3DCal only & $277\,$kg & 428\,084 & 12\,120 & 686 & $0.038$ \\
-3DCal $+$ ECAL & $1\,047\,$kg & 1\,593\,387 & 45\,130 & 2\,602 & $0.020$ \\
-3DCal $+$ AHCAL & $1\,874\,$kg & 2\,868\,980 & 81\,900 & 4\,650 & $0.015$ \\
-\textbf{3DCal $+$ ECAL $+$ AHCAL} & $\mathbf{2\,644\,}$\textbf{kg} & \textbf{4\,034\,283} & \textbf{115\,300} & \textbf{6\,566} & $\mathbf{0.012}$ \\
+3DCal only & $581\,$kg & 897\,115 & 25\,400 & 1\,438 & $0.026$ \\
+3DCal $+$ ECAL & $1\,351\,$kg & 2\,062\,418 & 59\,036 & 3\,354 & $0.017$ \\
+3DCal $+$ AHCAL & $3\,908\,$kg & 5\,982\,315 & 170\,804 & 9\,696 & $0.010$ \\
+\textbf{3DCal $+$ ECAL $+$ AHCAL} & $\mathbf{4\,678\,}$\textbf{kg} & \textbf{7\,147\,618} & \textbf{204\,440} & \textbf{11\,612} & $\mathbf{0.009}$ \\
 \bottomrule
 \end{tabular}
-\caption{Adding the downstream calorimeters as target volumes. Masses are
-fiducial; all rows use $\varepsilon=0.9$, which is \emph{not} appropriate for the
+\caption{Adding the downstream calorimeters as target volumes. All rows use $\varepsilon=0.9$, which is \emph{not} appropriate for the
 coarser detectors --- see the caveat below.}
 \label{tab:volumes}
 \end{table}
 
-Using the full stack gives a $9.5\times$ larger target than the 3DCal alone and
-improves the statistical reach by $\times3.2$. Material composition is handled
+Using the full stack gives an $8.1\times$ larger target than the 3DCal alone and
+improves the statistical reach by $\times2.9$. Material composition is handled
 per volume: the ECAL is $92\%$ lead ($w_p=0.396$), the AHCAL $98\%$ iron
 ($w_p=0.464$), against polystyrene ($w_p=0.538$) in the 3DCal.
 
@@ -267,12 +279,12 @@ per volume: the ECAL is $92\%$ lead ($w_p=0.396$), the AHCAL $98\%$ iron
         substantially lower identification efficiency than the 3DCal row. This is
         precisely why the main result is presented \emph{against} $\varepsilon$
         rather than at a fixed value.
-  \item \textbf{Containment.} The ECAL is only $\sim\!0.7$ interaction lengths
-        deep and cannot contain a hadronic shower by itself. It does however sit
-        \emph{upstream} of the AHCAL, which provides $\sim\!5\lambda$ behind it,
-        so it is given full fiducial acceptance here while the AHCAL --- the last
-        calorimeter --- keeps the $48\%$ of CDR Table 8. That asymmetry is a
-        modelling choice, not a documented one.
+  \item \textbf{Containment is not imposed.} All three volumes are used at full
+        mass. No requirement is made that the hadronic shower be contained
+        downstream of the interaction point. This is the natural reading of the
+        CDR (see below), but if a containment cut is later needed --- the AHCAL
+        is the last calorimeter and only $\sim\!5\lambda$ deep --- the yields
+        would fall accordingly.
 \end{enumerate}
 
 \noindent
@@ -902,14 +914,14 @@ $-10\%$ on JB and negligible on $\Sigma$.
 Question & Answer \\
 \midrule
 How many tagged charm events? &
-$686$ charge-signed, vertex-linked charm muons in the 3DCal alone at $780\fb$;
-$2602$ adding the ECAL, $4650$ adding the AHCAL, $6566$ using all three
-($\sigma(A_c)$ improving $0.038\to0.012$). The extra volumes are coarser, so
+$1438$ charge-signed, vertex-linked charm muons in the 3DCal alone at $780\fb$;
+$3354$ adding the ECAL, $9696$ adding the AHCAL, $11\,612$ using all three
+($\sigma(A_c)$ improving $0.026\to0.009$). The extra volumes are coarser, so
 those rows belong at lower $\varepsilon$ (Sec.~\ref{sec:ecalahcal}). \\[3pt]
 Is charm/anticharm separable? &
 Yes in principle --- the decay-muon charge \emph{is} the charm sign, and the CDR
 spectrometer misidentifies $<0.7\%$ --- but the reach is
-$\sigma(A_c)=0.041$. \\[3pt]
+$\sigma(A_c)=0.026$. \\[3pt]
 Is $A_c$ an intrinsic-charm observable? &
 \textbf{No.} It is identically zero in both available PDF sets. A non-zero
 $A_c$ needs a PDF set with explicit charm asymmetry, or a model. A

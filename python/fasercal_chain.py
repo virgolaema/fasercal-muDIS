@@ -77,7 +77,7 @@ COMPOSITION = {
 # to the fiducial z < 1150 mm (48% of the 2410 mm length), giving 277 kg.
 # (The first-principles calculation gave 514 kg, 13% light: it omits the
 #  aluminium enclosures, WLS fibres, glue and Tyvek.)
-M_FID_T = 0.277    # tonne, 3DCAL 1 mm W, fiducial z < 1150 mm (AHCAL excluded)
+M_FID_T = 0.581    # tonne, 3DCAL with 1 mm W per module, FULL mass (CDR Table 5)
 
 # REFERENCE MASS implicit in the flux normalisation.  arXiv:2506.13889 Eq. (2.1)
 # defines the flux as f_mu(x_mu) = n_T L_T dN_mu/dx_mu, i.e. the TUNGSTEN TARGET

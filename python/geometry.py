@@ -118,23 +118,33 @@ CDR_TABLE5 = {
     1.0: dict(length_mm=2500, mass_kg=1118, x0=32.5, lam=5.3, nu_per_ab=25.2),
 }
 
-# FIDUCIAL REGION.  CDR Table 8 quotes rates "restricted to the fiducial region
-# z < 1150 mm", i.e. only the upstream ~48% of the 2.4 m detector, so that the
-# hadronic shower is contained downstream of the vertex.  The same containment
-# argument applies to muon DIS, so the fiducial fraction is applied here too.
-FIDUCIAL_Z_MM = 1150.0
+# FIDUCIAL REGION -- REMOVED, and why.
+#
+# CDR Table 8 quotes rates "restricted to the fiducial region z < 1150 mm".  An
+# earlier version of this module read that as a CONTAINMENT cut keeping only the
+# upstream ~48% of the 2.41 m detector.  That was WRONG.  The cut simply requires
+# the interaction to be inside the 3DCAL at all, written in an older coordinate
+# system whose origin was at the CENTRE of the 3DCAL (collaboration, 2026-08):
+# with the origin centred the 3DCAL spans +-1205 mm, so z < 1150 mm keeps
+# 2355/2410 = 97.7% of it -- essentially everything.
+#
+# The fiducial reduction is therefore removed and full masses are used
+# throughout.  This roughly DOUBLES every absolute yield relative to the previous
+# version.  "3DCAL only" still means the 3DCAL alone; the ECAL and AHCAL are
+# added explicitly and separately where wanted.
+FIDUCIAL_FRACTION = 1.0
 
 
 def cdr_config(t_w_cm, fiducial=True):
     """
-    Material budget from CDR Table 5, optionally restricted to the fiducial
-    z < 1150 mm region.  Returns the same keys as configure() so the two are
-    interchangeable; use this one for absolute yields.
+    Material budget from CDR Table 5, at FULL mass -- see the note above on why
+    the CDR's z < 1150 mm is not a fiducial reduction.  Returns the same keys as
+    configure() so the two are interchangeable; use this one for absolute yields.
     """
     if t_w_cm not in CDR_TABLE5:
         raise KeyError(f"CDR Table 5 has no entry for t_W = {t_w_cm} cm")
     c = CDR_TABLE5[t_w_cm]
-    f_fid = min(FIDUCIAL_Z_MM / c["length_mm"], 1.0) if fiducial else 1.0
+    f_fid = FIDUCIAL_FRACTION if fiducial else 1.0
     g = configure(t_w_cm)                       # for the derived quantities
     m_tot = c["mass_kg"] / 1.0e3 * f_fid
     # split the fiducial mass between scintillator and W in the computed ratio
@@ -205,13 +215,13 @@ def ecal_config(fiducial_frac=1.0):
                 f_fiducial=fiducial_frac)
 
 
-def ahcal_config(fiducial_frac=0.48):
+def ahcal_config(fiducial_frac=1.0):
     """
     AHCAL target mass, split by material.
 
-    `fiducial_frac` defaults to the same 0.48 as the 3DCAL (CDR Table 8) for
-    consistency.  NOTE this is an assumption: the AHCAL is only ~5 lambda deep
-    in total, so a containment-driven cut could be considerably harsher.
+    Full mass by default -- the CDR z < 1150 mm is not a fiducial reduction (see
+    FIDUCIAL_FRACTION above).  If a containment requirement is later imposed --
+    the AHCAL is the last calorimeter, only ~5 lambda deep -- pass a smaller value.
     """
     a = AHCAL
     area = a["face_cm"] ** 2
