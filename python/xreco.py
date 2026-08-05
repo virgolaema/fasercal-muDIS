@@ -256,6 +256,20 @@ def reconstruct(d, rng, res=None, ein_known=True):
     q2_s = 2.0 * ein_sig * pout * one_m_cos
     out["Sigma"] = _x_from(q2_s, ein_sig - pout)
 
+    # 4b. DOUBLE-ANGLE fed with the SIGMA-RECONSTRUCTED E_in.
+    # x_DA is proportional to E_in, so the method is only as good as that input.
+    # The Sigma estimator rebuilds E_in from the final state with the ~9%
+    # calorimeter rather than the ~38% spectrometer, so this variant is BETTER
+    # than double-angle with a measured E_in -- and it needs no incoming-muon
+    # measurement at all, so it is available in the configuration where only a
+    # downstream spectrometer exists.
+    th_h_s = np.arctan2(np.hypot(s["px"], s["py"]), np.maximum(s["pz"], 1e-9))
+    den_s = np.sin(th + th_h_s)
+    e_da_s = np.where(np.abs(den_s) > 1e-6, ein_sig * np.sin(th_h_s) / den_s, np.nan)
+    e_da_s = np.clip(e_da_s, 0.5, None)
+    out["double-angle (Sigma E_in)"] = _x_from(2.0 * ein_sig * e_da_s * one_m_cos,
+                                               ein_sig - e_da_s)
+
     # 4. double-angle
     if ein_known:
         th_h = np.arctan2(np.hypot(s["px"], s["py"]), np.maximum(s["pz"], 1e-9))

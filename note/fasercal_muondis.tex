@@ -583,10 +583,50 @@ Adding JB buys further purity but costs more efficiency than it gains. Note that
 this is a crude AND of two cuts; a proper constrained kinematic fit using all
 measurements with their covariances should do better still.
 
-\paragraph{If $\Ein$ is not measured.} Double-angle and lepton-only cease to
-exist. The fallback is $\Sigma$ AND Jacquet--Blondel (correlation $-0.01$, also
-independent): efficiency $60.8\%$, purity $84.5\%$, product $0.514$ --- still
-$\times3.4$ over lepton-only. $\Sigma$ alone is unchanged at $0.444$.
+\subsection{If $\Ein$ is not measured --- and the best method overall}
+\label{sec:noein}
+
+The combination of Sec.~\ref{sec:combine} requires $\Ein$, because double-angle
+does. Since the downstream spectrometer sees only the \emph{outgoing} muon, that
+may not be available. \textbf{The $0.568$ quoted above therefore assumes a
+measured $\Ein$}, and this must be stated when it is used.
+
+It turns out not to matter, because there is a better option that needs no
+incoming-muon measurement at all. Since $x_{\rm DA}\propto\Ein$, double-angle is
+only as good as its $\Ein$ input --- and the $\Sigma$ estimator rebuilds $\Ein$
+from the final state using the $\sim\!9\%$ calorimeter rather than the
+$\sim\!38\%$ spectrometer. Feeding that into double-angle gives:
+
+\begin{center}\small
+\begin{tabular}{lrrr}
+\toprule
+Method ($\Ein$ \emph{not} measured) & Efficiency & Purity & Eff.$\times$Pur. \\
+\midrule
+\textbf{double-angle with $\Sigma$-reconstructed $\Ein$} & $81.8\%$ & $69.5\%$ & $\mathbf{0.569}$ \\
+$\Sigma$ AND double-angle($\Sigma$ $\Ein$) & $72.8\%$ & $73.6\%$ & $0.536$ \\
+$\Sigma$ AND Jacquet--Blondel & $60.5\%$ & $87.5\%$ & $0.530$ \\
+$\Sigma$ alone & $77.1\%$ & $57.6\%$ & $0.444$ \\
+Jacquet--Blondel & $78.4\%$ & $34.9\%$ & $0.274$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent
+\textbf{Double-angle fed with the $\Sigma$-reconstructed $\Ein$ is the best
+single method found, at $0.569$} --- marginally better than the two-method
+combination with a measured $\Ein$ ($0.568$), and better than double-angle with
+a measured $\Ein$ ($0.506$), for the same reason JB improved earlier: the
+calorimetric $\Ein$ beats the spectrometer one. It requires no upstream
+measurement, so it is available in the configuration FASER\emph{Cal} actually
+has. Combining it with $\Sigma$ does \emph{not} help --- sharing the same
+reconstructed $\Ein$ raises their error correlation from $0.08$ to $0.19$, and
+the AND then costs more efficiency than it buys purity.
+
+All variants close at $x_{\rm reco}/x_{\rm true}=1.0000$ with a perfect detector.
+
+\paragraph{Recommendation.} Use \textbf{double-angle with the
+$\Sigma$-reconstructed $\Ein$}. It is the best performer, needs no incoming-muon
+measurement, and avoids the two-cut combination entirely.
 
 \subsection{Intrinsic-charm content of the selection}
 \label{sec:icfrac}
@@ -884,12 +924,15 @@ resolution gives a several-hundred-percent $\nu$ error and no correlation
 between $x_{\rm true}$ and $x_{\rm reco}$. \\[3pt]
 Do calorimetric methods rescue it? &
 \textbf{Yes.} $\Sigma$ retains $\times2.9$ more signal; $\Sigma$ AND
-double-angle $\times3.8$, lifting the IC purity of the selection from $64\%$ to
-$95\%$. \\[3pt]
+double-angle $\times3.8$ \emph{if $\Ein$ is measured}. If it is not ---
+the likely case --- double-angle fed with the $\Sigma$-reconstructed $\Ein$
+gives $0.569$, $\times3.8$, with no upstream measurement
+(Sec.~\ref{sec:noein}). \\[3pt]
 Which method should be used? &
-\textbf{$\Sigma$}, combined with double-angle where possible. $\Sigma$ is flat in
-the hadronic angular resolution, unaffected by the neutrino loss, and the only
-method that works when $\Ein$ is unmeasured. \\[3pt]
+\textbf{Double-angle with the $\Sigma$-reconstructed $\Ein$} ($0.569$): best
+performer, needs no incoming-muon measurement. $\Sigma$ itself remains the
+robust fallback --- flat in the hadronic angular resolution and unaffected by
+the neutrino loss. \\[3pt]
 Do neutral particles undermine it? &
 No. Neutrinos cost JB $10\%$ and $\Sigma$ nothing; neutral hadrons are $8\%$ of
 the visible energy. \\[3pt]
