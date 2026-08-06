@@ -94,8 +94,11 @@ def page_conditions(pdf, d):
         ("Absorber", "1 mm or 5 mm W per MODULE (every 20 layers)", "talk slide 39"),
         ("3DCAL total mass", f"{g1['mass_full_kg']:.0f} kg (1 mm) / {g5['mass_full_kg']:.0f} kg (5 mm)",
          "CDR Table 5"),
-        ("Fiducial cut", f"z < {G.FIDUCIAL_Z_MM:.0f} mm ({100*g1['f_fiducial']:.0f}% of length)", "CDR Table 8"),
-        ("Fiducial mass", f"{1e3*g1['m_tot']:.0f} kg (1 mm) / {1e3*g5['m_tot']:.0f} kg (5 mm)", "derived"),
+        # The CDR's "z < 1150 mm" is not a containment cut but the requirement to
+        # be inside the 3DCal, in an older centred coordinate system.  Using the
+        # 3DCal alone already enforces it, so no fiducial cut is applied.
+        ("Fiducial cut", "none -- 3DCal volume only", "CDR Table 8"),
+        ("Target mass", f"{1e3*g1['m_tot']:.0f} kg (1 mm) / {1e3*g5['m_tot']:.0f} kg (5 mm)", "derived"),
         ("Charge misidentification", "0.7% ($<$100 GeV) $\\to$ 2-5% (TeV)", "CDR Sec. 2.6.2"),
         ("Spectrometer", "10 Fe planes 1.5 T, 11 SciFi stations 100 $\\mu$m", "CDR Table 7"),
         ("Radiation / collision length (5 mm)", f"{g5['x0_total']:.1f} $X_0$ / "

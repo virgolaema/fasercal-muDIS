@@ -8,29 +8,32 @@
 muons is simulated end to end. The Bern talk replaced most of the remaining
 assumptions with designed values — and corrected several of them substantially.
 
-> ### ⚠ 2026-08-06 — the events have been regenerated
+> ### 2026-08-06 — the events have been regenerated
 >
 > The samples are now produced in **20 fixed-energy bins** and reweighted to the
-> flux, instead of handing the flux to POWHEG as a beam PDF. See
-> **[BINNED_PRODUCTION.md](BINNED_PRODUCTION.md)** for the full account.
+> flux, instead of handing the flux to POWHEG as a beam PDF. Bins 12–19, which
+> carry most of the rate, have 80 k events each; the merged sample is
+> **3 335 495 events**. See **[BINNED_PRODUCTION.md](BINNED_PRODUCTION.md)** and
+> **[CHARM_PAIR.md](CHARM_PAIR.md)**.
 >
-> This removed the fictitious-beam remnant at source and exposed two real
-> defects in the numbers below, so **the charm yields and the asymmetry in §1 are
-> superseded**:
+> **The large-x answer given to A. Rubbia is unchanged.** The regeneration moves
+> the *low*-x bins by up to 2.9σ and leaves the signal region alone — which is
+> exactly where the defect was, since 56.8 % of the charm below 20 GeV in the old
+> sample had `W < 2 m_D`, too little invariant mass to have produced it.
 >
-> * more than half of the low-energy charm in the old sample sat in events with
->   `W < 2 m_D`, i.e. **too little invariant mass to have produced it** — it came
->   from the beam remnant. Being symmetric in `c`/`c̄`, it diluted the
->   fragmentation asymmetry, which moves from `-0.061` to **`-0.144`**;
-> * `N_eff` for any charm observable is **~7 %** of the raw count, because 40 % of
->   charm events carry a negative POWHEG weight. This is why the tagged sample
->   had `N_eff = 778` for 12 019 events, and it means extra statistics buy ~14×
->   less than the raw count suggests.
+> | truth x | flux-as-beam-PDF | binned | tension |
+> |---|---|---|---|
+> | < 0.05 | +0.011 ± 0.029 | −0.075 ± 0.027 | 2.9σ |
+> | 0.05–0.10 | −0.371 ± 0.088 | −0.054 ± 0.079 | 2.7σ |
+> | **> 0.2** | **−0.198 ± 0.036** | **−0.264 ± 0.060** | **0.9σ** |
 >
-> The total DIS yield closes against the old production to **3.4 %**, so the
-> absolute normalisation in §1 stands. A high-statistics extension of the four
-> bins that carry 80 % of the signal is in production; §1 will be rewritten with
-> the merged numbers.
+> Total DIS yield closes to **3.4 %** between the two strategies. Energy balance:
+> 80 % of events negative → **4.5 %**; `E_had(particles)/E_had(conservation)` =
+> **0.9997**, and 0.9996 at x > 0.2 where the old ratio reached 2.5.
+>
+> **N_eff, not N_raw, is the limit.** 37 % of charm events carry a negative POWHEG
+> weight against 4 % of non-charm ones, so `N_eff/N_raw = 0.035` for charm against
+> 0.48 inclusively — extra events buy ~14× less than the raw count suggests.
 
 ---
 
@@ -43,13 +46,17 @@ identification+linking efficiency ε = 0.9:
 
 | stage | 3DCAL only | + AHCAL | fraction |
 |---|---:|---:|---|
-| Muon DIS in the target volume | **897 115** | **5 982 315** | 100 % |
-| … containing charm | 25 400 | 170 804 | 2.86 % |
-| … charm → semileptonic µ | 4 481 | 30 127 | 17.6 % of charm |
-| … µ punches out | 3 657 | 24 600 | 81.7 % |
-| … reaches spectrometer (43 %) | 1 598 | 10 773 | 43 % |
-| … identified + linked (ε = 0.9) | **1 438** | **9 696** | **0.16 % of DIS** |
-| **σ(A_c)** | **0.026** | **0.010** | |
+| Muon DIS in the target volume | **867 600** | **5 785 000** | 100 % |
+| … containing charm | 20 220 | 135 800 | 2.33 % |
+| … charm → semileptonic µ | 3 589 | 24 160 | 17.8 % of charm |
+| … µ punches out | 3 102 | 20 886 | 86.4 % |
+| … reaches spectrometer (43.1 %) | 1 337 | 9 016 | 43.1 % |
+| … identified + linked (ε = 0.9) | **1 203** | **8 114** | **0.14 % of DIS** |
+| **σ(A_c)** | **0.029** | **0.011** | |
+
+*Binned production, merged sample (3 335 495 events). The charm fraction drops
+from 2.86 % to 2.33 % because the old sample contained charm the DIS vertex had
+too little invariant mass to produce.*
 
 *Full masses — the CDR's "z < 1150 mm" is **not** a containment cut but the
 requirement to be inside the 3DCal, in an older centred coordinate system where
@@ -57,10 +64,10 @@ it retains 97.7 %. Removing the erroneous 48 % roughly doubled all yields.*
 
 | target volume | mass | tagged | σ(A_c) |
 |---|---:|---:|---:|
-| 3DCal only (1 mm W) | 581 kg | 1 438 | 0.026 |
-| + ECAL | 1 351 kg | 3 354 | 0.017 |
-| + AHCAL | 3 908 kg | 9 696 | 0.010 |
-| **+ ECAL + AHCAL** | **4 678 kg** | **11 612** | **0.009** |
+| 3DCal only (1 mm W) | 581 kg | 1 203 | 0.029 |
+| + ECAL | 1 351 kg | 2 807 | 0.019 |
+| + AHCAL | 3 908 kg | 8 114 | 0.011 |
+| **+ ECAL + AHCAL** | **4 678 kg** | **9 718** | **0.010** |
 
 Charge-tag purity **99.2 %** (CDR §2.6.2 measured misidentification).
 
@@ -88,9 +95,9 @@ Charge-tag purity **99.2 %** (CDR §2.6.2 measured misidentification).
 
 | absorber (3DCal only) | mass | tagged | σ(A_c) |
 |---|---:|---:|---:|
-| **1 mm W/module** (baseline) | 581 kg | 1 438 | **0.026** |
-| 5 mm W/module | 896 kg | 2 200 | 0.021 |
-| 10 mm W/module | 1 118 kg | 2 744 | 0.019 |
+| **1 mm W/module** (baseline) | 581 kg | 1 203 | **0.029** |
+| 5 mm W/module | 896 kg | 1 855 | 0.023 |
+| 10 mm W/module | 1 118 kg | 2 333 | 0.021 |
 
 With the AHCAL included the absorber choice becomes almost irrelevant — the
 AHCAL mass dominates.
@@ -103,7 +110,7 @@ AHCAL mass dominates.
 - [x] Per-event extraction from POWHEG+Pythia8 (`shower_dis.py`): DIS kinematics, hadronic final state, charm hadrons, semileptonic dimuon
 - [x] Muon classification by **mother-chain ancestry** (charm-decay vs scattered)
 - [x] Charm-sign ≡ decay-muon-charge identity **verified in code**, holds 100 %
-- [x] 763 848 showered events per PDF hypothesis (10 seeds × 4 samples × 20 k)
+- [x] **3 335 495 showered events**, binned production (20 log-E bins × 4 samples; bins 12–19 at 80 k each)
 - [x] Both PDF hypotheses: fitted charm (`production_v1`) and perturbative (`production_pc`)
 
 **Normalisation**
@@ -139,7 +146,13 @@ leading-baryon effect: Λ_c outnumbers Λ̄_c by **6.8 : 1** (the c picks up two
 valence quarks from the target remnant; the c̄ cannot make an anti-baryon), and
 Λ_c has the lowest semileptonic BR of any charm hadron (4.8 %). So the c is
 preferentially hidden from the muon tag → the tagged sample is c̄-enriched,
-A = −0.061 ± 0.036.
+A = −0.087 ± 0.024 inclusively, −0.264 ± 0.060 at x > 0.2.
+
+Split by charm side (see [CHARM_PAIR.md](CHARM_PAIR.md)) the mechanism is
+explicit: at x > 0.2 the c side is **68.1 % Λ_c** while the c̄ side is **0.8 %**,
+and the c̄ side reproduces the world-average fragmentation fractions at every x.
+Only one side moves — the c can hadronise against the valence diquark, the c̄
+only against the sea.
 
 **Consequences:** (i) A_c is not measurable as an IC observable with current PDF
 inputs — it needs an asymmetric-charm set or a model; (ii) the fragmentation

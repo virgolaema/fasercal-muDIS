@@ -49,10 +49,10 @@ Driver: `scripts/generate_binned.sh`. Showering: `python/shower_binned.py`.
 
 | | flux-as-PDF | binned |
 |---|---|---|
-| events with negative energy balance | 80 % | **3.8 %** |
-| median energy balance | — | **+0.053 GeV** |
-| `E_had(particles) / E_had(conservation)` | up to 2.5 | **0.9986** |
-| same, restricted to `x > 0.2` | — | **0.9955** |
+| events with negative energy balance | 80 % | **4.5 %** |
+| median energy balance | — | **+0.028 GeV** |
+| `E_had(particles) / E_had(conservation)` | up to 2.5 | **0.9997** |
+| same, restricted to `x > 0.2` | — | **0.9996** |
 
 The particle sum now closes where it used to fail worst, so
 `xreco.hadronic_truth()` takes the particle sum again and the momentum-
@@ -76,7 +76,11 @@ More than half of the low-energy charm in the old sample sat in events with
 fictitious beam remnant, not from the DIS vertex.
 
 Because remnant-produced charm is symmetric in `c`/`c̄`, it *diluted* the
-fragmentation asymmetry. The tagged asymmetry moves from `-0.061` to **`-0.144`**.
+fragmentation asymmetry — but only where it lived, i.e. at low energy and low
+`x`. The inclusive tagged asymmetry moves from `-0.061 ± 0.036` to
+`-0.087 ± 0.024`, and the low-`x` bins move by up to 2.9 sigma, while the signal
+region `x > 0.2` is unchanged within 0.9 sigma. See STATUS.md for the bin-by-bin
+comparison.
 
 ### 3. A bug of our own: non-unit POWHEG weights
 
@@ -89,7 +93,7 @@ With this fixed, the closure against the old production is:
 
 | | flux-as-PDF | binned | ratio |
 |---|---|---|---|
-| total DIS yield | 8.99e5 | 8.69e5 | **0.966** |
+| total DIS yield | 8.99e5 | 8.69e5 | **0.967** |
 | `<E_mu>` weighted | 1001 GeV | 940 GeV | 0.94 |
 
 3.4 % on the absolute normalisation, between two generation strategies that
@@ -102,11 +106,11 @@ count, and the loss is concentrated in exactly the subsample we care about:
 
 | subsample | `N_raw` | `N_eff` | retained |
 |---|---|---|---|
-| inclusive | 763 848 | 543 023 | 71 % |
-| **contains charm** | 66 533 | 4 680 | **7 %** |
+| inclusive (binned) | 3 335 495 | 1 604 615 | 48 % |
+| **contains charm** | 296 111 | 10 314 | **3.5 %** |
 
-The mechanism: **40 % of charm events carry a negative weight**, against 0.57 %
-of non-charm events, while `|w|` is the same for both (0.373 vs 0.378). POWHEG's
+The mechanism: **37 % of charm events carry a negative weight**, against 4 %
+of non-charm events, while `|w|` is essentially the same for both. POWHEG's
 negative-weight events populate the hard-radiation region, and that is where
 `g -> c cbar` happens, so charm is genuinely enriched in the negative-weight
 class.
@@ -127,11 +131,20 @@ Per-bin share of the tagged-charm yield:
 | 12–15 (353–831 GeV) | ~17 % | 20 % |
 | **16–19 (1.1–2.6 TeV)** | **~80 %** | 20 % |
 
-Bins 16–19 carry four fifths of the signal on ~800 raw charm events each. A
-high-statistics extension for those bins is generated into a separate directory
-and merged by `shower_binned.py --indir <dir1> <dir2>`, which divides the per-bin
-weight by the *combined* event count so the normalisation is untouched and only
-`N_eff` improves.
+**This has been done.** Bins 12–19 were regenerated with 80 k events each into a
+separate directory and merged by `shower_binned.py --indir <dir1> <dir2>`, which
+divides the per-bin weight by the *combined* event count so the normalisation is
+untouched and only `N_eff` improves. Bins 12–15 were included as well as 16–19
+because the `x > 0.2` region is spread more broadly in energy than the inclusive
+charm sample: bins 16–19 carry 80 % of all tagged charm but only 45 % of the
+`x > 0.2` yield, while bins 12–15 carry a further 33 %.
+
+The merged sample is **3 335 495 events**. At `x > 0.2` the tagged-charm
+`N_eff` rose from 55 to 280, and the hadron-composition `N_eff` from 619 to
+3 468. The `x > 0.2` asymmetry moved from `-0.402 ± 0.134` at low statistics to
+**`-0.264 ± 0.060`** — i.e. the low-statistics value was a fluctuation, and the
+converged number agrees with the original production's `-0.198 ± 0.036` at
+0.9 sigma.
 
 ## Two things that are correct and look wrong
 
