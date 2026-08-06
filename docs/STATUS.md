@@ -8,6 +8,30 @@
 muons is simulated end to end. The Bern talk replaced most of the remaining
 assumptions with designed values — and corrected several of them substantially.
 
+> ### ⚠ 2026-08-06 — the events have been regenerated
+>
+> The samples are now produced in **20 fixed-energy bins** and reweighted to the
+> flux, instead of handing the flux to POWHEG as a beam PDF. See
+> **[BINNED_PRODUCTION.md](BINNED_PRODUCTION.md)** for the full account.
+>
+> This removed the fictitious-beam remnant at source and exposed two real
+> defects in the numbers below, so **the charm yields and the asymmetry in §1 are
+> superseded**:
+>
+> * more than half of the low-energy charm in the old sample sat in events with
+>   `W < 2 m_D`, i.e. **too little invariant mass to have produced it** — it came
+>   from the beam remnant. Being symmetric in `c`/`c̄`, it diluted the
+>   fragmentation asymmetry, which moves from `-0.061` to **`-0.144`**;
+> * `N_eff` for any charm observable is **~7 %** of the raw count, because 40 % of
+>   charm events carry a negative POWHEG weight. This is why the tagged sample
+>   had `N_eff = 778` for 12 019 events, and it means extra statistics buy ~14×
+>   less than the raw count suggests.
+>
+> The total DIS yield closes against the old production to **3.4 %**, so the
+> absolute normalisation in §1 stands. A high-statistics extension of the four
+> bins that carry 80 % of the signal is in production; §1 will be rewritten with
+> the merged numbers.
+
 ---
 
 ## 1. Headline numbers

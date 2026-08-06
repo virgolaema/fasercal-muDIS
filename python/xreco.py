@@ -118,36 +118,54 @@ def truth(d):
     return dict(nu=nu, x=x, y=nu / np.maximum(d["e_in"], 1e-9), q2=d["q2"])
 
 
-def hadronic_truth(d):
+def hadronic_truth(d, source="auto"):
     """
-    The TRUE hadronic four-vector, from momentum conservation rather than from
-    summing Pythia particles.
+    The TRUE hadronic four-vector.
 
-    WHY.  The hadronic system recoiling against the scattered muon is exactly
-        X = q + p_target ,   q = p_in - p_out ,   p_target = (M, 0, 0, 0)
-    so it is fully determined by the muon kinematics:
-        E_had  = nu + M
-        pT_had = p_out sin(theta_mu)
-        pz_had = |p_in| - p_out cos(theta_mu)
+    Two definitions are available and, for the BINNED production, they agree:
 
-    Summing the Pythia final state instead gives a contaminated answer: the muon
-    flux is implemented as a beam PDF of a fictitious 7 TeV beam, and that beam's
-    remnant deposits a few GeV of hadronic activity that is not part of the DIS
-    vertex.  It is negligible at large nu but dominates at large x (where nu is
-    small), and it cannot be removed by particle-level cuts -- beam-remnant
-    removal, forward-cone cuts and mother-chain ancestry were all tried and all
-    failed, the last because Pythia's colour reconnection leaves the ancestry
-    graph too connected to separate the two beam sides.  See docs/XRECO.md.
+      "particles"   -- the direct sum over the Pythia final state, excluding the
+                       scattered muon and all neutrinos.  This is the honest
+                       one: it carries the real fragmentation fluctuations and
+                       the real charged/neutral composition.
+      "conservation" -- from the muon kinematics alone, using
+                            X = q + p_target ,  p_target = (M, 0, 0, 0)
+                        so  E = nu + M,  pT = p_out sin(theta),
+                            pz = |p_in| - p_out cos(theta).
 
-    Using conservation is exact and makes the perfect-detector closure exact by
-    construction for every method, which is what a resolution study needs.
+    HISTORY.  The original samples took the flux as a beam PDF of a fictitious
+    7 TeV muon beam.  That beam has a remnant which hadronises into the event,
+    so the particle sum was contaminated: energy conservation failed in 80% of
+    events and E_had/nu reached 2.5 at large x, where nu is small.  No
+    particle-level cut removed it (beam-remnant status codes, forward cones and
+    mother-chain ancestry were all tried and all failed -- see docs/XRECO.md),
+    which forced "conservation" as a workaround.
+
+    The workaround had a real cost: it made E_had a deterministic function of
+    the muon kinematics, so the calorimetric methods (JB, Sigma) were being fed
+    an input partly built from the very quantity they are supposed to replace.
+    The binned production removes the remnant at source (fixed_lepton_beam 1 =>
+    x_lepton = 1 => no lepton-side remnant), the particle sum closes, and the
+    circularity is gone.
+
+    "auto" uses the particle sum when the cache provides it (binned production,
+    tagged by the `ibin` column) and falls back to conservation otherwise.
 
     NOT MODELLED, and flagged as such:
       * energy carried off by neutrinos from charm semileptonic decays, which
-        biases the measurable E_had low for exactly the signal events;
-      * the charged/neutral composition of the shower and its detector response,
-        which is folded into the single sigma_had parameter instead.
+        biases the measurable E_had low for exactly the signal events (the
+        neutrinos are excluded from the sum here, so this is the truth the
+        detector could at best see, not the full hadronic system);
+      * the detector response, folded into the single sigma_had parameter.
     """
+    if source == "auto":
+        source = "particles" if ("ibin" in d and "px_had" in d) else "conservation"
+    if source == "particles":
+        return dict(
+            e=d["e_had"],
+            pt=np.hypot(d["px_had"], d["py_had"]),
+            pz=d["pz_had"],
+        )
     nu = d["e_in"] - d["p_out"]
     return dict(
         e=nu + M_N,
@@ -156,8 +174,13 @@ def hadronic_truth(d):
     )
 
 
-def smear(d, rng, res=None):
-    """Apply the detector response to every measured quantity."""
+def smear(d, rng, res=None, had_source="auto"):
+    """Apply the detector response to every measured quantity.
+
+    `had_source` selects the definition of the true hadronic four-vector; see
+    hadronic_truth().  It is exposed so that the two can be compared on the same
+    sample, which is the check that retires the momentum-conservation workaround.
+    """
     r = dict(RESOLUTIONS); r.update(res or {})
     n = len(d["e_in"])
 
@@ -184,7 +207,7 @@ def smear(d, rng, res=None):
     pout = smear_muon(d["p_out"], r["muon_scale"] * sigma_p_over_p(d["p_out"]))
     thmu = np.maximum(d["theta_mu"] + rng.normal(0.0, r["sigma_theta"], size=n), 1e-6)
 
-    h = hadronic_truth(d)
+    h = hadronic_truth(d, had_source)
     e_vis = h["e"]
     if r["subtract_nu"] and "e_nu_charm" in d:
         e_vis = np.maximum(e_vis - d["e_nu_charm"], 1e-3)
@@ -203,7 +226,7 @@ def _x_from(q2, nu):
     return q2 / (2.0 * M_N * nu)
 
 
-def reconstruct(d, rng, res=None, ein_known=True):
+def reconstruct(d, rng, res=None, ein_known=True, had_source="auto"):
     """
     Return {method: x_reco} for the four methods.
 
@@ -221,7 +244,7 @@ def reconstruct(d, rng, res=None, ein_known=True):
                      The two impossible methods return NaN rather than a number,
                      so they cannot silently contribute to a comparison.
     """
-    s = smear(d, rng, res)
+    s = smear(d, rng, res, had_source)
     ein, pout, th = s["ein"], s["pout"], s["thmu"]
     one_m_cos = 1.0 - np.cos(th)
 

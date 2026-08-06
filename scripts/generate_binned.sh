@@ -42,8 +42,16 @@ done
 # per-sample POWHEG beam/target codes (as in the generator's own scripts)
 declare -A IH1=( [mum_proton]=13  [mum_neutron]=13  [mup_proton]=-13 [mup_neutron]=-13 )
 declare -A IH2=( [mum_proton]=1   [mum_neutron]=2   [mup_proton]=1   [mup_neutron]=2   )
-declare -A EB2=( [mum_proton]="0.938d0" [mum_neutron]="0.940d0" \
-                 [mup_proton]="0.938d0" [mup_neutron]="0.940d0" )
+# Target energy MUST equal the PDG mass exactly, or the target is not at rest.
+# The original production used 0.940 for the neutron (PDG 0.93957); with the
+# flux-as-beam-PDF setup the beam remnant quietly absorbed the resulting 28 MeV
+# of target momentum, but with `fixed_lepton_beam 1` there IS no remnant, and
+# Pythia then fails every neutron event with
+#     ProcessContainer::constructProcess: setting mass failed
+# The proton was unaffected only by luck: 0.938 < m_p = 0.93827, so Pythia
+# clamped it to rest. Both are now set to the exact PDG masses.
+declare -A EB2=( [mum_proton]="0.93827d0" [mum_neutron]="0.93957d0" \
+                 [mup_proton]="0.93827d0" [mup_neutron]="0.93957d0" )
 
 source "$GEN/scripts/env.sh" >/dev/null 2>&1
 

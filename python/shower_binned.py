@@ -21,6 +21,16 @@ both are improvements:
      momentum conservation (nu + M), so the two can be compared.  If they agree
      the workaround can be retired.
 
+WHICH RECORD THE MUON COMES FROM.  The muon is read from `py.process` (the hard
+process) while the hadrons are summed from `py.event` (after shower and decay).
+That is deliberate, not an oversight.  `py.process` is the POWHEG frame and
+`py.event` the lab frame, but the target is at rest in both to 2 MeV, and Q^2 and
+x are invariant under the residual longitudinal boost.  The 1.6% difference
+between nu measured in the two records is FSR off the muon leg, which is physics:
+the hard-process muon is the right truth for a PDF study, the final-state one is
+what a spectrometer would see.  The combination used here closes energy
+conservation to +0.07 GeV on a 113 GeV event -- see the `ebal` column.
+
 WEIGHTS.  POWHEG returns a cross section per bin for a monochromatic beam; the
 flux enters afterwards as the per-bin integral Int f(x) dx from
 python/flux_bins.py.  Summing over bins reproduces the beam-PDF normalisation by
@@ -105,7 +115,17 @@ def shower_one(lhe, n_events, is_neutron, e_bin, ibin, w_bin):
     for c in ["Beams:frameType = 4", f"Beams:LHEF = {lhe}",
               "Main:numberOfEvents = 0", "Print:quiet = on",
               "Init:showChangedSettings = off", "Next:numberShowEvent = 0",
-              "Stat:showProcessLevel = off", "POWHEG:nFinal = 2"]:
+              "Stat:showProcessLevel = off", "POWHEG:nFinal = 2",
+              # POWHEG writes fixed-target events in a frame where the lepton
+              # carries E = ebeam1 + m_target/2, so the light-cone energy of the
+              # final state does not match the beams reconstructed from the
+              # <init> line to Pythia's 1e-6 tolerance.  Pythia's incoming-parton
+              # reassignment (ProcessContainer.cc, "setting mass failed") then
+              # rejects every event; it killed 14 of the 40 neutron bins.  The
+              # reassignment is a no-op wherever POWHEG already conserves
+              # momentum exactly -- i.e. everywhere -- so switching it off is
+              # safe: a bin that worked with it on is unchanged to 5 digits.
+              "LesHouches:matchInOut = off"]:
         py.readString(c)
     if not py.init():
         print(f"  [warn] init failed: {lhe}", file=sys.stderr)
@@ -189,8 +209,17 @@ def shower_one(lhe, n_events, is_neutron, e_bin, ibin, w_bin):
             if r["mu"] is not None and (lead is None or r["mu"].pAbs() > lead.pAbs()):
                 lead, lsign = r["mu"], r["sign"]
 
+        # POWHEG events are NOT unit weight.  In a typical bin |XWGTUP| sits on
+        # one value for the bulk but ~3% of events carry a NEGATIVE weight (NLO
+        # subtraction) and a handful carry a large positive one.  Using a
+        # constant per-bin weight ignores both; it shifts the normalisation by
+        # ~6% and, worse, it silently changes any weighted fraction whose
+        # numerator correlates with the weights.  `w_bin` here is
+        # flux_integral / N_events, so multiplying by XWGTUP makes the bin sum
+        # flux_integral * <XWGTUP> = flux_integral * sigma_bin, which is the
+        # POWHEG cross section -- the same convention shower_dis.py used.
         row = dict(
-            w_raw=w_bin, is_neutron=float(is_neutron),
+            w_raw=w_bin * py.infoPython().weight(), is_neutron=float(is_neutron),
             e_in=in_mu.e(), e_in_bin=e_bin, p_out=out_mu.pAbs(),
             theta_mu=th, q2=q2,
             e_had=eh, px_had=px, py_had=py_, pz_had=pz,
@@ -215,35 +244,54 @@ def shower_one(lhe, n_events, is_neutron, e_bin, ibin, w_bin):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--indir", required=True)
+    ap.add_argument("--indir", required=True, nargs="+",
+                    help="one or more production directories; a bin present in "
+                         "several is MERGED, with the per-event weight divided "
+                         "by the combined event count of that bin")
     ap.add_argument("--npz", required=True)
-    ap.add_argument("--nevents", type=int, default=100000)
+    ap.add_argument("--nevents", type=int, default=1000000)
     args = ap.parse_args()
 
-    bins = json.load(open(os.path.join(args.indir, "bins.json")))
+    bins = json.load(open(os.path.join(args.indir[0], "bins.json")))
     ecent = np.array(bins["e_centre"])
     w_mu, w_mubar = np.array(bins["w_mu"]), np.array(bins["w_mubar"])
 
+    def nevents(path):
+        return sum(1 for line in open(path) if "<event>" in line)
+
+    # The physical rate is concentrated at high energy -- bins 16-19 carry ~80%
+    # of the tagged-charm yield -- so generating the same number of events in
+    # every bin wastes most of the sample.  Extra high-statistics productions
+    # for the bins that matter are merged in here; the weight of a bin is
+    # flux_integral / (total events for that bin across all directories), so the
+    # normalisation is unchanged and only the effective statistics improve.
     cols = {k: [] for k in KEYS}
     for sample in SAMPLES:
         is_n = "neutron" in sample
         flux = w_mubar if sample.startswith("mup") else w_mu
         for ibin in range(len(ecent)):
-            d = os.path.join(args.indir, sample, f"bin{ibin:02d}")
-            lhe = os.path.join(d, "pwgevents-0001.lhe")
-            if not os.path.exists(lhe):
+            dirs = [os.path.join(r, sample, f"bin{ibin:02d}") for r in args.indir]
+            dirs = [x for x in dirs
+                    if os.path.exists(os.path.join(x, "pwgevents-0001.lhe"))]
+            if not dirs:
                 continue
-            sig = xsec_from_log(d)
-            nev = sum(1 for _ in open(lhe) if "<event>" in _)
-            if nev == 0 or sig is None:
+            nev = sum(nevents(os.path.join(x, "pwgevents-0001.lhe")) for x in dirs)
+            if nev == 0:
                 continue
-            # expected events for this bin, divided evenly over the MC events
-            w_bin = flux[ibin] * sig / nev
-            c = shower_one(lhe, args.nevents, is_n, ecent[ibin], ibin, w_bin)
-            for k in KEYS:
-                cols[k].extend(c[k])
+            sig = xsec_from_log(dirs[0])    # kept only for the printout
+            # Per-event weight prefactor; the POWHEG cross section enters through
+            # XWGTUP (applied event by event in shower_one), not from the log.
+            w_bin = flux[ibin] / nev
+            got = 0
+            for x in dirs:
+                c = shower_one(os.path.join(x, "pwgevents-0001.lhe"),
+                               args.nevents, is_n, ecent[ibin], ibin, w_bin)
+                for k in KEYS:
+                    cols[k].extend(c[k])
+                got += len(c["w_raw"])
             print(f"  {sample} bin{ibin:02d}  E={ecent[ibin]:7.1f} GeV  "
-                  f"sigma={sig:.4g}  N={len(c['w_raw'])}  w={w_bin:.4g}", flush=True)
+                  f"sigma={sig:.4g}  N={got} (from {len(dirs)} dir)  "
+                  f"w={w_bin:.4g}", flush=True)
 
     arr = {k: np.array(cols[k], dtype=float) for k in KEYS}
     n = len(arr["w_raw"])

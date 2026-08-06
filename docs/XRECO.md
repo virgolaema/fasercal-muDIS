@@ -216,16 +216,23 @@ the framework is verified before any smearing is applied.
 
 ## A methodological problem, and how it was solved
 
-The hadronic four-vector is computed **from momentum conservation**
+> **Resolved at source, 2026-08-06.** The events have been regenerated in fixed
+> energy bins, which removes the beam remnant entirely. The hadronic four-vector
+> is now the **particle sum** again and the workaround below is retired. It
+> survives as `xreco.hadronic_truth(d, source="conservation")` for comparison.
+> See [BINNED_PRODUCTION.md](BINNED_PRODUCTION.md). The rest of this section
+> records the problem and why the workaround was necessary at the time.
+
+The hadronic four-vector was computed **from momentum conservation**
 (X = q + p_target ⇒ E_had = ν + M, p_T = p_out sin θ_µ, p_z = |p_in| − p_out cos θ_µ),
 **not** by summing Pythia final-state particles.
 
-The particle sum is contaminated. The muon flux is implemented as a beam PDF of a
-fictitious 7 TeV beam, and that beam's remnant deposits a few GeV of hadronic
+The particle sum was contaminated. The muon flux was implemented as a beam PDF of
+a fictitious 7 TeV beam, and that beam's remnant deposits a few GeV of hadronic
 activity that is not part of the DIS vertex. Energy conservation
-(E_in + M − E′ − E_had ≥ 0) fails in **80 % of events**, rising to **98 %** on the
-x ≥ 0.2 charm sample, where E_had/ν reaches **2.5**. Negligible at large ν
-(E_had/ν = 1.02 above 500 GeV), it dominates exactly where the physics is.
+(E_in + M − E′ − E_had ≥ 0) failed in **80 % of events**, rising to **98 %** on the
+x ≥ 0.2 charm sample, where E_had/ν reached **2.5**. Negligible at large ν
+(E_had/ν = 1.02 above 500 GeV), it dominated exactly where the physics is.
 
 Three fixes were tried and **all failed**:
 
@@ -235,8 +242,31 @@ Three fixes were tried and **all failed**:
 | drop very forward particles (θ < 1 mrad) | removes 28 GeV on average but does not move the median |
 | require ancestry to reach beam 2 | *worse* (E_had/ν = 8.5) — Pythia's colour reconnection leaves the mother graph too connected to separate the two beam sides |
 
-Conservation is exact and makes the closure exact by construction, which is what
+Conservation was exact and made the closure exact by construction, which is what
 a resolution study needs.
+
+### What the workaround was costing
+
+It made E_had a deterministic function of the muon kinematics, so Jacquet–Blondel
+and Σ were partly fed the very quantity they exist to replace. On the binned
+sample the two definitions can finally be compared on the same events:
+
+| method | particles (bias / half-width) | conservation |
+|---|---|---|
+| lepton-only | −0.283 / 0.702 | −0.283 / 0.702 |
+| Jacquet–Blondel | −0.049 / 13.71 | −0.001 / 14.31 |
+| **Σ** | +0.029 / **1.213** | +0.010 / **1.130** |
+| double-angle (Σ E_in) | −0.010 / 3.225 | +0.006 / 3.267 |
+| double-angle | −0.005 / 3.563 | −0.001 / 3.532 |
+
+Lepton-only is identical in the two columns, as it must be — it never touches the
+hadrons — which validates the comparison. The workaround was flattering the
+calorimetric methods: it hid a 5 % bias on JB and a 3 % bias on Σ, and improved
+Σ's resolution by 7 %. Those are the real fragmentation fluctuations and
+semileptonic-neutrino losses, previously suppressed by construction.
+
+**The physics conclusion is unchanged**: Σ and the double-angle method remain far
+ahead of lepton-only.
 
 ## Are the calorimetric methods viable given neutral particles? — Yes.
 
